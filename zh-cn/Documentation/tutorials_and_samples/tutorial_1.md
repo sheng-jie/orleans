@@ -30,10 +30,10 @@ title: Tutorial One
 
 注意：您可以在c＃中为这些项目中的每个项目使用默认项目类型。您将在下面为每个项目提供的代码替换默认代码。您可能还需要添加`使用`陈述。
 
-1.  首先在新解决方案中创建一个控制台应用程序(.NET Core)项目。调用项目部分`silos`并命名解决方案`Orleans世界`。
-2.  添加另一个控制台应用程序(.NET Core)项目并将其命名`客户`。
-3.  添加一个类库(.NET标准)并命名`grains接口`。
-4.  添加另一个类库(.NET标准)并命名`Grains`。
+1.  首先在新解决方案中创建一个控制台应用程序(.NET Core)项目。项目命名为`Silo`并命名解决方案为`Orleans Basics`。
+2.  添加另一个控制台应用程序(.NET Core)项目并将其命名`Client`。
+3.  添加一个类库(.NET Standard)并命名`GrainInterfaces`。
+4.  添加另一个类库(.NET Standard)并命名`Grains`。
 
 #### 删除默认源文件
 
@@ -42,23 +42,23 @@ title: Tutorial One
 
 ### 添加参考
 
-1.  `Grains`参考资料`grains接口`。
-2.  `silos`参考资料`grains接口`和`Grains`。
-3.  `客户`参考资料`grains接口`。
+1.  `Grains`引用`GrainInterfaces`。
+2.  `Silo`引用`GrainInterfaces`和`Grains`。
+3.  `Clinet`引用`GrainInterfaces`。
 
 ## 添加OrleansNuGet软件包
 
-1.  在silos项目中，添加`微软Orleans服务器`NuGet软件包。
-2.  在客户端项目中，添加`微软Orleans客户`NuGet软件包。
-3.  在GrainInterfaces和Grains项目中，添加`Microsoft.Orleans.Core.Abstractions`和`Microsoft.Orleans.CodeGenerator.MSBuild`包。
-4.  在“Grains”项目中，添加`Microsoft.Extensions.Logging.Abstractions`用于记录的软件包。
-5.  在客户和silos项目中，添加`Microsoft.Extensions.Logging.Console`，以便他们可以在控制台窗口中打印日志。
+1.  在`Silo`项目中，添加`Microsoft.Orleans.Server`NuGet软件包。
+2.  在客户端项目中，添加`Microsoft.Orleans.Client`NuGet软件包。
+3.  在`GrainInterfaces`和`Grains`项目中，添加`Microsoft.Orleans.Core.Abstractions`和`Microsoft.Orleans.CodeGenerator.MSBuild`包。
+4.  在`Grains`项目中，添加`Microsoft.Extensions.Logging.Abstractions`用于记录的软件包。
+5.  在`Client`和`Silo`项目中，添加`Microsoft.Extensions.Logging.Console`，以便他们可以在控制台窗口中打印日志。
 
-`微软Orleans服务器`和`微软Orleans客户`是元软件包，它们带来了在silos和客户端最可能需要的依赖关系。
+`Microsoft.Orleans.Server`和`Microsoft.Orleans.Client`是元软件包，它们带来了在silos和客户端最可能需要的依赖关系。
 
-`Microsoft.Orleans.Core.Abstractions`在任何地方都需要。两者都包含`微软Orleans服务器`和`微软Orleans客户`。
+`Microsoft.Orleans.Core.Abstractions`在任何地方都需要。两者都包含`Microsoft.Orleans.Server`和`Microsoft.Orleans.Client`。
 
-`Microsoft.Orleans.CodeGenerator.MSBuild`自动生成调用Grains通过机器边界所需的代码。所以两者都需要`grains接口`和`Grains`项目。
+`Microsoft.Orleans.CodeGenerator.MSBuild`自动生成调用Grains通过机器边界所需的代码。所以两者都需要`GrainInterfaces`和`Grains`项目。
 
 ## 定义grains接口
 
@@ -240,7 +240,7 @@ namespace OrleansBasics
 
 ## 运行应用程序
 
-构建解决方案并运行silos。在收到确认信息后，表示正在运行silos(“按Enter键以终止...”)，然后运行客户端。成功看起来像这样：
+构建解决方案并运行`Silo`项目，在收到确认信息后，表示正在运行`Silo`(“按Enter键以终止...”)，然后运行`Client`项目。成功看起来像这样：
 
 ![](../images/orleansbasics_success.png)
 
