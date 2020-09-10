@@ -108,7 +108,7 @@ class StartupTask : ILifecycleParticipant<ISiloLifecycle>
 
 需要在给定阶段初始化的组件将提供自己的回调，但模式是相同的。
 
-现在我们有了一个startuptask，它将确保在配置阶段调用应用程序的钩子，我们需要确保startuptask参与竖井生命周期。为此，我们只需要在容器中注册它。
+现在我们有了一个startuptask，它将确保在配置阶段调用应用程序的钩子，我们需要确保startuptask参与Silo生命周期。为此，我们只需要在容器中注册它。
 
 我们使用silohost构建器上的扩展函数来实现这一点。
 

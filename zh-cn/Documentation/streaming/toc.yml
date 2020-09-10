@@ -1,6 +1,6 @@
 - name: 概述
   href: index.md
-- name: Streams 快速开锁
+- name: Streams 快速开始
   href: streams_quick_start.md
 - name: 为什么使用 Streams
   href: streams_why.md

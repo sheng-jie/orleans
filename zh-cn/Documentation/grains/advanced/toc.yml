@@ -4,7 +4,7 @@
   href: ../interceptors.md
 - name: Grain 服务
   href: ../grainservices.md
-- name: 无状态 Worker Grains
+- name: 无状态工作者 Grains
   href: ../stateless_worker_grains.md
 - name: 取消令牌
   href: ../cancellation_tokens.md

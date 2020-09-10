@@ -27,5 +27,5 @@ Orleans采用了对象，接口，async/await和try/catch等熟悉的概念，�
 
 ### 贡献指引
 感谢您的参与，主要有两种方式可以参与到文档改进中：
-1. 点击文档网页右上方[Improve this Doc]链接，即可打开GitHub中对应当前文档的原生Markdown页面，再点击页面上的[🖍]铅笔图标，即可进行在线修改，修改完毕，提交创建PR即可。
+1. 点击文档网页右上方**[Improve this Doc]**链接，即可打开GitHub中对应当前文档的原生Markdown页面，再点击页面上的[🖍]铅笔图标，即可进行在线修改，修改完毕，提交创建PR即可。
 2. Fork仓库[sheng-jie/orleans](https://github.com/sheng-jie/orleans)并Clone到本地目录，签出docs分支（`checkout docs`），进入`zh-cn`目录，即可修改，修改完毕后，创建PR即可。
