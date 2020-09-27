@@ -7,11 +7,11 @@ title: Tutorial 1 Hello World
 
 此概述与可用的Hello World示例应用程序相关联[这里](https://github.com/dotnet/orleans/tree/master/Samples/2.0/HelloWorld)。
 
-Orleans的主要概念包括silos，客户和一种或多种Grains。创建Orleans应用程序涉及配置silos，配置客户端和编写Grain。
+Orleans的主要概念包括silos，客户和一种或多种Grains。创建Orleans应用程序涉及配置silos，配置客户端和开发Grain。
 
 ## 配置silos
 
-通过以下方式以编程方式配置silos`SiloHostBuilder`和许多补充期权类别。可以找到所有选项的列表[这里。](http://dotnet.github.io/orleans/Documentation/clusters_and_clients/configuration_guide/list_of_options_classes.html)
+通过以下方式以编程方式配置silos`SiloHostBuilder`和许多追加的选项（option）类。可以找到所有选项的列表[这里。](http://dotnet.github.io/orleans/Documentation/clusters_and_clients/configuration_guide/list_of_options_classes.html)
 
 ```csharp
 [...]
@@ -46,7 +46,7 @@ Orleans的主要概念包括silos，客户和一种或多种Grains。创建Orlea
 
 ## 配置客户端
 
-与silos类似，客户端通过以下方式配置`ClientBuilder`以及类似的期权类别集合。
+与silos类似，客户端通过以下方式配置`ClientBuilder`以及类似的追加的选项（option）类集合。
 
 ```csharp
         private static async Task<IClusterClient> StartClientWithRetries()
@@ -76,7 +76,7 @@ Orleans的主要概念包括silos，客户和一种或多种Grains。创建Orlea
 
 可以找到有关配置客户端的更深入的指南[在配置指南的客户端配置部分中。](http://dotnet.github.io/orleans/Documentation/clusters_and_clients/configuration_guide/client_configuration.html)
 
-## 写一粒
+## 开发一个grain
 
 Grains是Orleans编程模型的关键原语。Grains是Orleans应用程序的基础，它们是隔离，分布和持久化的原子单位。Grains是代表应用程序实体的对象。就像经典的面向对象编程一样，grain封装了实体的状态，并在代码逻辑中对其行为进行了编码。Grains可以相互保持引用，并可以通过调用彼此通过接口公开的方法进行交互。
 
@@ -112,7 +112,7 @@ namespace HelloWorld.Interfaces
 }
 ```
 
-## 零件如何协同工作
+## 组件如何协同工作
 
 建立此编程模型是我们分布式面向对象编程的核心概念的一部分。SiloHost首先启动。然后，启动OrleansClient程序。OrleansClient的Main方法调用启动客户端的方法，`StartClientWithRetries()。`客户端被传递给`DoClientWork()`方法。
 
