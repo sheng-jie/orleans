@@ -30,9 +30,9 @@ Orleans使用以下规则来决定要生成哪些序列化程序。规则是：
 
 Orleans支持使用提供程序模型与第三方序列化程序集成。这需要实现`IExternalSerializer`在此文档的自定义序列化部分中描述的类型。一些常见序列化程序的集成与Orleans一起维护，例如：
 
--   [协议缓冲区](https://developers.google.com/protocol-buffers/)以下内容：`Orleans.Serialization.ProtobufSerializer`来自[Microsoft.Orleans.OrleansGoogleUtils](https://www.nuget.org/packages/Microsoft.Orleans.OrleansGoogleUtils/)Nuget包。
--   [债券](https://github.com/microsoft/bond/)以下内容：`Orleans.Serialization.BondsSerializer`来自[Microsoft.Orleans.Serialization.bond](https://www.nuget.org/packages/Microsoft.Orleans.Serialization.Bond/)Nuget包。
--   [newtonsoft.json又名json.net](http://www.newtonsoft.com/json)以下内容：`Orleans.Serialization.OrleansJsonSerializer`来自 Orleans 核心库。
+-   [Protocol Buffers](https://developers.google.com/protocol-buffers/)以下内容：`Orleans.Serialization.ProtobufSerializer`来自[Microsoft.Orleans.OrleansGoogleUtils](https://www.nuget.org/packages/Microsoft.Orleans.OrleansGoogleUtils/)Nuget包。
+-   [Bond](https://github.com/microsoft/bond/)以下内容：`Orleans.Serialization.BondsSerializer`来自[Microsoft.Orleans.Serialization.bond](https://www.nuget.org/packages/Microsoft.Orleans.Serialization.Bond/)Nuget包。
+-   [Newtonsoft.Json AKA Json.NET](http://www.newtonsoft.com/json)以下内容：`Orleans.Serialization.OrleansJsonSerializer`来自 Orleans 核心库。
 
 自定义实现`IExternalSerializer`在下面的编写自定义序列化程序部分中进行了描述。
 
