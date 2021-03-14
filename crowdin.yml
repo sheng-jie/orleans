@@ -4,3 +4,9 @@ files:
       - /zh-cn
       - /src/1.5/
     translation: zh-cn/%original_path%/%original_file_name%
+  - source: '*.yml'
+    ignore:
+      - .github/
+      - /src/1.5/
+      - /zh-cn/
+    translation: zh-cn/%original_path%/%original_file_name%
