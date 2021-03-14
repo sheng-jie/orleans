@@ -1,0 +1,6 @@
+files:
+  - source: '*.md'
+    ignore:
+      - /zh-cn
+      - /src/1.5/
+    translation: zh-cn/%original_path%/%original_file_name%
