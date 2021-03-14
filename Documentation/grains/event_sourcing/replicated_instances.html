@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Replicated Grains | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Replicated Grains | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h2 id="多副本-grains">多副本 Grains</h2>
+
+<p>有时，同一Grain的多个实例可能处于活动状态，例如在操作多集群时，使用<code>[OneInstancePerCluster]</code>属性。journaledgrain旨在以最小的影响支持多副本实例。它依赖于<em>日志一致性提供程序</em>运行必要的协议以确保所有实例同意相同的事件序列。特别要注意以下几个方面：</p>
+<ul>
+<li><p><strong>一致的版本</strong>：Grains状态的所有版本(临时版本除外)都基于相同的全局事件序列。特别是，如果两个实例看到相同的版本号，则它们看到相同的状态。</p>
+</li>
+<li><p><strong>事件竞争</strong>：多个实例可以同时引发事件。一致性提供程序解决了这个竞争，并确保每个人都同意相同的顺序。</p>
+</li>
+<li><p><strong>通知/反应性</strong>：在一个Grains实例上引发事件后，一致性提供程序不仅更新存储，还通知所有其他Grains实例。</p>
+</li>
+</ul>
+<p>有关一致性模型的一般讨论，请参见<a href="https://www.microsoft.com/en-us/research/publication/geo-distribution-actor-based-services/">技术报告</a>以及<a href="https://www.microsoft.com/en-us/research/publication/global-sequence-protocol-a-robust-abstraction-for-replicated-shared-state-extended-version/">GSP 论文</a>(全局序列协议)。</p>
+<h2 id="条件事件">条件事件</h2>
+<p>如果事件竞争有冲突，也就是说，由于某种原因，不应该同时进行，那么事件竞争可能会有问题。例如，在从银行账户取款时，有两个实例可以独立地确定有足够的资金用于取款，并发出取款事件。但这两个事件的结合可能透支。为了避免这种情况，journaledgrain api支持<code>RaiseConditionalEvent</code>方法。</p>
+<pre><code class="lang-csharp">bool success = await RaiseConditionalEvent(new WithdrawalEvent()  { ... });
+</code></pre><p>条件事件仔细检查本地版本是否与存储中的版本匹配。如果没有，则意味着事件序列同时增长，这意味着此事件已失去与其他事件的竞争。在这种情况下，条件事件是<em>不</em>附加到日志中，并且<code>RaiseConditionalEvent</code>返回false。</p>
+<p>这类似于在条件存储更新中使用e-tags，并且同样提供了一种简单的机制来避免提交冲突事件。</p>
+<p>对同一个Grain同时使用条件和无条件事件是可能和明智的，例如<code>DepositEvent</code>以及<code>WithdrawalEvent</code>。存款不需要有条件：即使<code>DepositEvent</code>如果竞争失败，则不必取消，但仍可以附加到全局事件序列中。</p>
+<p>等待任务返回者<code>RaiseConditionalEvent</code>足以确认事件，即不必同时调用<code>ConfirmEvents</code>。</p>
+<h2 id="显式同步">显式同步</h2>
+<p>有时，最好确保Grains完全赶上最新版本。这可以通过调用</p>
+<pre><code class="lang-csharp">await RefreshNow();
+</code></pre><p>其中(1)确认所有未确认事件，和(2)从存储中加载最新版本。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/event_sourcing/replicated_instances.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

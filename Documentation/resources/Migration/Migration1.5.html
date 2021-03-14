@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Migration from Orleans 1.5 to 2.0 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Migration from Orleans 1.5 to 2.0 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="从orleans迁移到05">从Orleans迁移到0.5</h1>
+
+<p>Orleans的大部分API在2.0中保持不变，或者这些API的实现留在遗留类中以实现向后兼容性。同时，新引入的api提供了一些新的功能或更好的方法来完成这些任务。当涉及到.NETSDK工具和VisualStudio支持时，还有更细微的区别，这有助于我们意识到这一点。本文档为将应用程序代码从迁移到Orleans 2.0提供了指导。</p>
+<h2 id="visual-studio和工具要求">Visual Studio和工具要求</h2>
+<p>Orleans2.0.0建立在.NET标准2.0之上。因此，您需要升级开发工具，以确保您获得愉快的开发体验。我们建议使用Visual Studio 2017或更高版本来开发Orleans 2.0.0应用程序。根据我们的经验，15.5.2及更高版本的效果最好。NET Standard 2.0.0与.NET 4.6.1及更高版本、.NET Core 2.0和其他框架列表兼容。Orleans2.0.0继承了这种兼容性。有关与其他.NET标准的兼容性信息，请参阅.NET<a href="https://docs.microsoft.com/en-us/dotnet/standard/net-standard">.NET标准文档</a>：如果您正在使用Orleans开发.NET Core或.NET应用程序，则需要按照某些步骤来设置环境，例如安装.NET Core SDK。更多信息，请参考<a href="https://dotnet.github.io/">文档</a>.</p>
+<h2 id="配置代码的可用选项">配置代码的可用选项</h2>
+<h2 id="群众或部队的集合">群众或部队的集合</h2>
+<h3 id="配置和启动silos使用新的silobuilder-api和旧的clusterconfiguration对象">配置和启动silos(使用新的SiloBuilder API和旧的ClusterConfiguration对象)</h3>
+<p>Orleans 2.0中有许多新的选项类，它们为配置silos提供了一种新的方法。为了便于迁移到新的API，有一个可选的向后兼容包，<code>Microsoft.Orleans.Runtime.遗产</code>，它提供了从旧的1.x配置API到新的配置API的桥。</p>
+<p>如果你加上<code>Microsoft.Orleans.Runtime.遗产</code>包，silos仍然可以通过传统的<code>群集配置</code>对象，然后可以传递给<code>SiloHostBuilder</code>建造和启动silos。</p>
+<p>您仍然需要通过<code>配置应用程序部件</code>调用。</p>
+<p>以下是如何以传统方式配置本地silos的示例：</p>
+<pre><code class="lang-csharp">public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        try
+        {
+            var host = await StartSilo();
+            Console.WriteLine(&quot;Press Enter to terminate...&quot;);
+            Console.ReadLine();
+
+            await host.StopAsync();
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return 1;
+        }
+    }
+
+    private static async Task&lt;ISiloHost&gt; StartSilo()
+    {
+        // define the cluster configuration (temporarily required in the beta version,
+        // will not be required by the final release)
+        var config = ClusterConfiguration.LocalhostPrimarySilo();
+        // add providers to the legacy configuration object.
+        config.AddMemoryStorageProvider();
+
+        var builder = new SiloHostBuilder()
+            .UseConfiguration(config)
+            // Add assemblies to scan for grains and serializers.
+            // For more info read the Application Parts section
+            .ConfigureApplicationParts(parts =&gt;
+                parts.AddApplicationPart(typeof(HelloGrain).Assembly)
+                     .WithReferences())
+            // Configure logging with any logging framework that supports Microsoft.Extensions.Logging.
+            // In this particular case it logs using the Microsoft.Extensions.Logging.Console package.
+            .ConfigureLogging(logging =&gt; logging.AddConsole());
+
+        var host = builder.Build();
+        await host.StartAsync();
+        return host;
+    }
+}
+</code></pre><h3 id="配置和连接客户端使用新的clientbuilder-api和旧的clientconfiguration对象">配置和连接客户端(使用新的ClientBuilder API和旧的ClientConfiguration对象)</h3>
+<p>orleans2.0中有许多新的选项类，它们为配置客户端提供了一种新的方法。为了便于迁移到新的API，有一个可选的向后兼容包，<code>Microsoft.Orleans.Core.遗产</code>，它提供了从旧的1.x配置API到新的配置API的桥。</p>
+<p>如果你添加了<code>Microsoft.Orleans.Core.遗产</code>包，客户端仍然可以通过旧版本以编程方式配置<code>客户端配置</code>对象，然后可以传递给<code>客户端生成器</code>来构建和连接客户端。</p>
+<p>您仍然需要通过<code>配置应用程序部件</code>调用。</p>
+<p>下面是一个示例，说明客户端如何使用传统配置连接到本地silos：</p>
+<pre><code class="lang-csharp">// define the client configuration (temporarily required in the beta version,
+// will not be required by the final release)
+var config = ClientConfiguration.LocalhostSilo();
+var builder = new ClientBuilder()
+    .UseConfiguration(config)
+    // Add assemblies to scan for grains interfaces and serializers.
+    // For more info read the Application Parts section
+    .ConfigureApplicationParts(parts =&gt; parts.AddApplicationPart(typeof(IHello).Assembly))
+    .ConfigureLogging(logging =&gt; logging.AddConsole())
+var client = builder.Build();
+await client.Connect();
+</code></pre><h2 id="登录中">登录中</h2>
+<p>Orleans 2.0使用与ASP.NET核心2.0。您可以在中找到大多数Orleans日志记录功能的替代品ASP.NET岩芯测井。Orleans特定的日志记录功能，例如<code>ILogConsumer</code>和消息膨胀，仍然保持在<code>Microsoft.Orleans.Logging.遗产</code>包，这样你仍然可以选择使用它们。但是如何在2.0中使用Orleans配置日志记录发生了变化。让我来给你介绍一下迁移的过程。</p>
+<p>在1.5中，日志配置是通过<code>客户端配置</code>和<code>节点配置</code>. 您可以配置<code>默认跟踪级别</code>, <code>跟踪文件名</code>, <code>跟踪模式</code>, <code>TraceLevelOverrides</code>, <code>跟踪控制台</code>, <code>批量消息限制</code>, <code>木材消费者</code>等等。在2.0中，日志记录配置与ASP.NETcore2.0日志记录，这意味着大部分配置都是通过<code>Microsoft.Extensions.Logging.ILoggingBuilder</code>. </p>
+<p>配置<code>默认跟踪级别</code>和<code>TraceLevelOverrides</code>，你需要申请<a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging">日志过滤</a>到<code>ILoggingBuilder</code>. 例如，要在orleans运行时中将跟踪级别设置为“Debug”，可以使用下面的示例，</p>
+<pre><code>siloBuilder.AddLogging(builder=&gt;builder.AddFilter(&quot;Orleans&quot;, LogLevel.Debug));
+</code></pre><p>您可以用同样的方法为应用程序代码配置日志级别。如果要将默认的最小跟踪级别设置为调试，请使用下面的示例</p>
+<pre><code>siloBuilder.AddLogging(builder=&gt;builder.SetMinimumLevel(LogLevel.Debug);
+</code></pre><p>有关日志筛选的详细信息，请参阅<a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging">https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging</a>;</p>
+<p>将TraceToConsole配置为<code>是的</code>，需要参考<code>Microsoft.Extensions.Logging.控制台</code>打包后使用<code>添加控制台()</code>扩展方法<code>ILoggingBuilder</code>. 同样的<code>跟踪文件名</code>和<code>跟踪模式</code>，如果要将消息记录到文件中，则需要使用<code>AddFile(“文件名”)</code>方法<code>ILoggingBuilder</code>.</p>
+<p>如果您仍然想使用消息填充特性，您需要通过<code>ILoggingBuilder</code>也。消息填充功能存在于<code>Microsoft.Orleans.Logging.遗产</code>包裹。所以您需要首先添加对该包的依赖性。然后通过<code>ILoggingBuilder</code>. 下面是一个如何配置它的示例<code>ISiloHostBuilder</code></p>
+<pre><code>       siloBuiler.AddLogging(builder =&gt; builder.AddMessageBulkingLoggerProvider(new FileLoggerProvider(&quot;mylog.log&quot;)));
+</code></pre><p>此方法将对<code>FileLoggerProvider</code>，使用默认的填充配置。</p>
+<p>由于我们将在将来最终弃用并删除LogConsumer特性支持，我们强烈建议您尽快迁移掉这个特性。有两种方法你可以采取迁移。一个选择是保持你自己的<code>iLogger提供程序</code>，这就创造了<code>窃听器</code>谁登录到所有现有的日志使用者。这和我们正在做的非常相似<code>Microsoft.Orleans.Logging.遗产</code>包裹。你可以看看<code>LegacyOrleanSlogger提供程序</code>从中借用逻辑。另一个选择是替换<code>ILogConsumer</code>现有的<code>iLogger提供程序</code>在nuget上，它提供相同或相似的功能，或者实现您自己的功能<code>iLogger提供程序</code>符合您特定的日志记录要求。并配置它们<code>iLogger提供程序</code>与<code>ILoggingBuilder</code>.</p>
+<p>但如果您不能在短期内迁移非日志使用者，您仍然可以使用它。支持<code>ILogConsumer</code>生活在<code>Microsoft.Orleans.Logging.遗产</code>包裹。所以您需要首先添加对该包的依赖，然后通过扩展方法配置日志使用者<code>添加LegacyOrleansLogging</code>在<code>ILoggingBuilder</code>. 有本地人<code>添加日志记录</code>方法<code>IServiceCollection</code>提供单位ASP.NET供您配置<a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.loggingservicecollectionextensions.addlogging?view=aspnetcore-2.0#Microsoft_Extensions_DependencyInjection_LoggingServiceCollectionExtensions_AddLogging_Microsoft_Extensions_DependencyInjection_IServiceCollection_System_Action_Microsoft_Extensions_Logging_ILoggingBuilder"><code>ILoggingBuilder</code></a>. 我们还将该方法包装在<code>ISiloHostBuilder</code>和<code>IClientBuilder</code>. 所以你可以调用<code>添加日志记录</code>方法来配置silo builder和client builder<code>ILoggingBuilder</code>.  下面是一个例子：</p>
+<pre><code>            var severityOverrides = new OrleansLoggerSeverityOverrides();
+            severityOverrides.LoggerSeverityOverrides.Add(typeof(MyType).FullName, Severity.Warning);
+            siloBuilder.AddLogging(builder =&gt; builder.AddLegacyOrleansLogging(new List&lt;ILogConsumer&gt;()
+            {
+                new LegacyFileLogConsumer($&quot;{this.GetType().Name}.log&quot;)
+            }, severityOverrides));
+</code></pre><p>如果您投资于的自定义实现，则可以使用此功能<code>ILogConsumer</code>无法将它们转换为<code>iLogger提供程序</code>短期内。</p>
+<p><code>Logger GetLogger(字符串loggerName)</code>方法<code>Grains</code>基类和<code>IProviderRuntime</code>，和<code>记录器日志{get；}</code>在2.0中，IStorageProvider上的方法仍作为不推荐使用的功能进行维护。您仍然可以在迁移Orleans遗留日志的过程中使用它。但我们建议你尽快离开它们。</p>
+<h2 id="提供程序配置">提供程序配置</h2>
+<p>在Orleans 2.0中，包含的提供者的配置已经标准化，可以从<code>俱乐部选项</code>为silos或客户端配置。</p>
+<p>服务ID是集群所代表的服务或应用程序的稳定标识符。随着时间的推移，在实施服务的群集的部署和升级之间，服务ID不会改变。</p>
+<p>与服务ID不同，集群ID只在Silo集群的生命周期中保持不变。如果一个正在运行的集群被关闭，并且部署了同一服务的新集群，那么新集群将拥有一个新的、唯一的集群ID，但是将维护旧集群的服务ID。</p>
+<p>服务ID通常用作密钥的一部分，用于持久化需要在整个服务生命周期中保持连续性的数据。例如Grain状态、提醒和持久流的队列。另一方面，集群成员关系表中的数据只在其集群的范围内有意义，因此通常是从集群ID中键入的。</p>
+<p>在2.0之前，Orleans提供者的行为有时与使用服务ID和集群ID(以前也称为部署ID)不一致。由于这种统一性以及提供者配置API的整体变化，一些提供者写入存储器的数据可能会改变位置或密钥。对此更改敏感的提供程序示例是Azure队列流提供程序。</p>
+<p>如果您正在将现有服务从1.x迁移到2.0，并且需要保持与您在服务中使用的提供程序持久化的数据的位置或键相关的向后兼容性，请验证数据是否位于您的服务或提供商预期的位置。如果您的服务碰巧依赖于1.x提供程序对服务ID和Cluster ID的错误使用，则可以重写<code>俱乐部选项</code>通过调用<code>ISiloHostBuilder.AddProviderClusterOptions()</code>或<code>IClientBuilder.AddProviderClusterOptions()</code>并强制它从存储器中的1.x位置读/写数据</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/resources/Migration/Migration1.5.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

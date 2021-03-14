@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#23459;&#24067;Orleans2.1 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#23459;&#24067;Orleans2.1 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="宣布orleans21">宣布Orleans2.1</h1>
+
+<p><a href="https://github.com/ReubenBond">鲁本·邦德</a>2018/10/1下午7:17:59</p>
+<hr>
+<p>今天，我们宣布了Orleans2.1。此版本包括对2.0的重大性能改进，对分布式事务支持的重大更新，新的代码生成器以及用于共同托管方案的新功能，以及较小的修复和改进。阅读<a href="https://github.com/dotnet/orleans/releases/tag/v2.1.0">在这里发布说明</a>。</p>
+<h2 id="新调度程序">新调度程序</h2>
+<p>从Orleans2.1开始，我们有一个<a href="https://github.com/dotnet/orleans/pull/3792">重写核心调度程序</a>利用<a href="https://blogs.msdn.microsoft.com/dotnet/2017/06/07/performance-improvements-in-net-core/">.NET Core的ThreadPool的性能改进</a>。新的调度程序使用具有本地队列相似性的工作窃取队列来减少争用并提高吞吐量和延迟。这些改进适用于所有平台/框架。社区成员报告说他们的服务具有显着的响应能力和吞吐量改进，而我们的测试表明吞吐量提高了30％。这种新的调度程序在低负载期间的CPU使用率也要低得多，这有利于共同托管方案并改善CPU性能分析体验。特别感谢<a href="https://twitter.com/dVakulen">德米特罗·瓦库连科(Dmytro Vakulenko)</a>从社区推动这项工作从理论到实验和完成。</p>
+<h2 id="分布式交易">分布式交易</h2>
+<p>Orleans起源于Microsoft Research，我们将继续与MSR和产品团队合作，将可扩展的分布式事务等功能引入生产环境。分布式事务支持最初是在Orleans2.0中作为实验性功能引入的，而在2.1中，我们将使用新的完全分散的事务管理器来刷新发行版。除了对交易管理器进行了改进之外，整个交易系统仍在继续进行大量投资，以准备生产代码并在Orleans的未来版本中稳定发布。我们认为分布式事务在2.1中具有“候选发布”质量。从Sergey的演讲中了解Orleans的分布式交易，<a href="https://www.youtube.com/watch?v=8A5bRdyZXJw">分布式事务已死，分布式事务万岁！来自J On the Beach 2018</a>。阅读有关交易，面向参与者的数据库系统以及其他主题的研究论文。<a href="https://www.microsoft.com/en-us/research/project/orleans-virtual-actors/#!publications">OrleansMicrosoft Research网站</a>。</p>
+<h2 id="直接客户">直接客户</h2>
+<p>Orleans2.1引入了一种与Grains进行交互并与ASP.NET或gRPC等框架进行互操作的新方法。该功能称为<em>直接客户</em>并且它允许以一种方式共同托管客户端和孤岛，从而使客户端不仅可以与其连接的孤岛，而且可以与整个集群进行更有效的通信。启用直接客户端后，<code>ICluster客户端</code>和<code>IGrain工厂</code>可以从silos容器中解析出来，并用于创建可以调用的Grains引用。这些调用使用本地silos对群集和grains位置的了解来避免不必要的复制，序列化和网络跃点。另外，由于此功能与silos本身具有相同的内部结构，因此在线程间传递Grains引用时，它提供了无缝的体验。在Orleans2.1中，我们将直接客户作为选择加入的功能。通过调用启用它<code>ISiloHostBuilder.EnableDirectClient()</code>在silos配置期间。</p>
+<h2 id="新代码生成器">新代码生成器</h2>
+<p>此版本包括一个新的代码生成包，<code>Microsoft.Orleans.CodeGenerator.MSBuild</code>，是现有软件包的替代品，<code>Microsoft.Orleans.OrleansCodeGenerator.Build</code>。新的代码生成器利用Roslyn进行代码分析，以避免加载应用程序二进制文件。结果，它避免了因相互依赖的版本冲突和目标框架不同而导致的问题。如果您遇到问题，请通过打开一个问题告知我们<a href="https://github.com/dotnet/orleans/">的GitHub</a>。新的代码生成器还改善了对增量构建的支持，这将缩短构建时间。</p>
+<h2 id="其他改进">其他改进</h2>
+<ul>
+<li><a href="https://github.com/dotnet/orleans/pull/4562">Grains方法可以返回<code>ValueTask &lt;T&gt;</code></a>- 谢谢<a href="https://twitter.com/kutensky">@kutensky</a></li>
+<li><a href="https://github.com/dotnet/orleans/pull/4399">删除了每次访问计时器分配</a>，减少.NET Timer队列争用</li>
+<li><a href="https://github.com/dotnet/orleans/pull/4853">修正</a>
+<a href="https://github.com/dotnet/orleans/pull/4883">对于</a>Silo关闭行为-谢谢<a href="https://twitter.com/yevhen">@yevhen</a>用于报告和<a href="https://github.com/dotnet/orleans/issues/4757">调查中</a></li>
+<li><a href="https://github.com/dotnet/orleans/pull/4890">配置Grains收集</a>空闲时间使用<code>[CollectionAgeLimit(分钟= x)]</code>- 谢谢<a href="https://github.com/arajeshkumar">@aRajeshKumar</a></li>
+</ul>
+<h2 id="net-core-21的已知问题">.NET Core 2.1的已知问题</h2>
+<p>用户<a href="https://github.com/dotnet/orleans/issues/4990">孙忠峰报告了问题</a>在启用TieredCompilation的.NET Core 2.1上运行Orleans。我们将此归结为<a href="https://github.com/dotnet/coreclr/issues/20040">CoreCLR中的JIT问题</a>，CoreCLR团队迅速对其进行了诊断和修复。.NET Core 2.1默认情况下未启用TieredCompilation，并且此修复程序是<a href="https://github.com/dotnet/coreclr/pull/20083#issuecomment-424464934">预计不会出现在.NET Core 2.1中，但将包含在.NET Core 2.2中</a>。<strong>如果您在.NET Core 2.1上运行Orleans，请不要启用TieredCompilation。</strong>我们要感谢社区中为该版本做出贡献并帮助测试预发行版本的每个人。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/blog/announcing-orleans-2.1.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

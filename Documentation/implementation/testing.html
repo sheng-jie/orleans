@@ -1,0 +1,262 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#21333;&#20803;&#27979;&#35797; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#21333;&#20803;&#27979;&#35797; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="单元测试">单元测试</h1>
+
+<p>本教程显示如何对Grains进行单元测试，以确保它们的行为正确。对Grains进行单元测试的主要方法有两种，选择的方法将取决于要测试的功能类型。的<code>微软Orleans测试主机</code>NuGet包可用于为Grains创建测试silos，也可以使用模拟框架，例如<a href="https://github.com/moq/moq">起订量</a>模拟您与之交互的Orleans运行时的各个部分。</p>
+<h2 id="使用testcluster">使用TestCluster</h2>
+<p>的<code>微软Orleans测试主机</code>NuGet软件包包含<code>测试集群</code>可以用来创建一个内存集群，默认情况下它由两个silos组成，可以用来测试Grains。</p>
+<pre><code class="lang-csharp">using System;
+using System.Threading.Tasks;
+using Orleans;
+using Orleans.TestingHost;
+using Xunit;
+
+namespace Tests
+{
+    public class HelloGrainTests
+    {
+        [Fact]
+        public async Task SaysHelloCorrectly()
+        {
+            var cluster = new TestCluster();
+            cluster.Deploy();
+
+            var hello = cluster.GrainFactory.GetGrain&lt;IHelloGrain&gt;(Guid.NewGuid());
+            var greeting = await hello.SayHello();
+
+            cluster.StopAllSilos();
+
+            Assert.Equal(&quot;Hello, World&quot;, greeting);
+        }
+    }
+}
+</code></pre><p>由于启动内存集群的开销，您可能希望创建一个<code>测试集群</code>并在多个测试案例中重复使用。例如，可以使用xUnit的类或集合夹具来完成此操作(请参见<a href="https://xunit.github.io/docs/shared-context.html">https://xunit.github.io/docs/shared-context.html</a>更多细节)。</p>
+<p>为了分享一个<code>测试集群</code>在多个测试用例之间，首先创建一个夹具类型：</p>
+<pre><code class="lang-csharp">public class ClusterFixture : IDisposable
+{
+    public ClusterFixture()
+    {
+        this.Cluster = new TestCluster();
+        this.Cluster.Deploy();
+    }
+
+    public void Dispose()
+    {
+        this.Cluster.StopAllSilos();
+    }
+
+    public TestCluster Cluster { get; private set; }
+}
+</code></pre><p>接下来创建一个集合夹具：</p>
+<pre><code class="lang-csharp">[CollectionDefinition(ClusterCollection.Name)]
+public class ClusterCollection : ICollectionFixture&lt;ClusterFixture&gt;
+{
+    public const string Name = &quot;ClusterCollection&quot;;
+}
+</code></pre><p>您现在可以重复使用<code>测试集群</code>在您的测试用例中：</p>
+<pre><code class="lang-csharp">using System;
+using System.Threading.Tasks;
+using Orleans;
+using Xunit;
+
+namespace Tests
+{
+    [Collection(ClusterCollection.Name)]
+    public class HelloGrainTests
+    {
+        private readonly TestCluster _cluster;
+
+        public HelloGrainTests(ClusterFixture fixture)
+        {
+            _cluster = fixture.Cluster;
+        }
+
+        [Fact]
+        public async Task SaysHelloCorrectly()
+        {
+            var hello = _cluster.GrainFactory.GetGrain&lt;IHelloGrain&gt;(Guid.NewGuid());
+            var greeting = await hello.SayHell();
+
+            Assert.Equal(&quot;Hello, World&quot;, greeting);
+        }
+    }
+}
+</code></pre><p>xUnit将调用<code>处理</code>的方法<code>集群固定</code>当所有测试都已完成并且在内存中群集孤岛将停止时，请键入。<code>测试集群</code>也有一个接受的构造函数<code>TestClusterOptions</code>可用于配置集群中的孤岛。</p>
+<p>如果您在silos中使用依赖注入来使服务可用于Grains，则也可以使用以下模式：</p>
+<pre><code class="lang-csharp">public class ClusterFixture : IDisposable
+{
+    public ClusterFixture()
+    {
+        var builder = new TestClusterBuilder();
+        builder.AddSiloBuilderConfigurator&lt;TestSiloConfigurations&gt;();
+        this.Cluster = builder.Build();
+        this.Cluster.Deploy();
+    }
+
+    public void Dispose()
+    {
+        this.Cluster.StopAllSilos();
+    }
+
+    public TestCluster Cluster { get; private set; }
+}
+
+public class TestSiloConfigurations : ISiloBuilderConfigurator {
+    public void Configure(ISiloHostBuilder hostBuilder) {
+        hostBuilder.ConfigureServices(services =&gt; {
+            services.AddSingleton&lt;T, Impl&gt;(...);
+        });
+    }
+}
+</code></pre><h2 id="使用嘲弄">使用嘲弄</h2>
+<p>Orleans还使模拟系统的许多部分成为可能，并且在许多情况下，这是对grains进行单元测试的最简单方法。这种方法确实有局限性(例如，围绕调度重入和序列化)，并且可能要求Grain包含仅由单元测试使用的代码。的<a href="https://github.com/OrleansContrib/OrleansTestKit">OrleansTestKit</a>提供了一种替代方法，可以绕开许多这些限制。</p>
+<p>例如，让我们想象一下我们正在测试的Grains与其他Grains相互作用。为了能够模拟其他Grains，我们还需要模拟<code>grain工厂</code>被测Grains的成员。默认<code>grain工厂</code>是正常的<code>受保护的</code>属性，但大多数模拟框架要求将属性设置为<code>上市</code>和<code>虚拟</code>才能嘲笑他们。所以我们要做的第一件事就是<code>grain工厂</code>都<code>上市</code>和<code>虚拟</code>属性：</p>
+<pre><code class="lang-csharp">public new virtual IGrainFactory GrainFactory
+{
+    get { return base.GrainFactory; }
+}
+</code></pre><p>现在，我们可以在Orleans运行时之外创建Grains，并使用模拟来控制<code>grain工厂</code>：</p>
+<pre><code class="lang-csharp">using System;
+using System.Threading.Tasks;
+using Orleans;
+using Xunit;
+using Moq;
+
+namespace Tests
+{
+    public class WorkerGrainTests
+    {
+        [Fact]
+        public async Task RecordsMessageInJournal()
+        {
+            var data = &quot;Hello, World&quot;;
+
+            var journal = new Mock&lt;IJournalGrain&gt;();
+
+            var worker = new Mock&lt;WorkerGrain&gt;();
+            worker
+                .Setup(x =&gt; x.GrainFactory.GetGrain&lt;IJournalGrain&gt;(It.IsAny&lt;Guid&gt;()))
+                .Returns(journal.Object);
+
+            await worker.DoWork(data)
+
+            journal.Verify(x =&gt; x.Record(data), Times.Once());
+        }
+    }
+}
+</code></pre><p>在这里，我们创建受测Grains<code>工人粮</code>，使用Moq表示我们可以覆盖<code>grain工厂</code>以便它返回一个模拟<code>IJournalGrain</code>。然后，我们可以验证我们的<code>工人粮</code>与<code>IJournalGrain</code>如我们所料。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/implementation/testing.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

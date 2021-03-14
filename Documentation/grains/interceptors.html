@@ -1,0 +1,485 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Grain Call Filters | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Grain Call Filters | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="grains访问过滤器">Grains访问过滤器</h1>
+
+<p>Grains调用过滤器提供了一种拦截Grains调用的方法。筛选器可以在Grains调用之前和之后执行代码。可以同时安装多个过滤器。过滤器是异步的，可以修改<code>RequestContext</code>，参数和被调用方法的返回值。过滤器还可以检查<code>方法信息</code>可以在Grain类上调用的方法，可用于引发或处理异常。</p>
+<p>Grain调用过滤器的一些示例用法是：</p>
+<ul>
+<li>授权：过滤器可以检查正在调用的方法以及其中的参数或某些授权信息<code>RequestContext</code>确定是否允许呼叫继续进行。</li>
+<li>记录/遥测：过滤器可以记录信息并捕获计时数据和有关方法调用的其他统计信息。</li>
+<li>错误处理：过滤器可以拦截方法调用引发的异常，并将其转换为另一个异常，或者在通过过滤器时处理该异常。</li>
+</ul>
+<p>过滤器有两种口味：</p>
+<ul>
+<li>访问过滤</li>
+<li>呼出调用过滤器</li>
+</ul>
+<p>收到呼叫时，将执行传入呼叫过滤器。拨调用时执行呼出调用过滤器。</p>
+<h1 id="访问过滤">访问过滤</h1>
+<p>传入的Grain调用过滤器实现了<code>IIncomingGrainCallFilter</code>接口，它具有一种方法：</p>
+<pre><code class="lang-csharp">public interface IIncomingGrainCallFilter
+{
+    Task Invoke(IIncomingGrainCallContext context);
+}
+</code></pre><p>的<code>IIncomingGrainCallContext</code>参数传递给<code>Invoke</code>方法具有以下形状：</p>
+<pre><code class="lang-csharp">public interface IIncomingGrainCallContext
+{
+    /// &lt;summary&gt;
+    /// Gets the grain being invoked.
+    /// &lt;/summary&gt;
+    IAddressable Grain { get; }
+
+    /// &lt;summary&gt;
+    /// Gets the &lt;see cref=&quot;MethodInfo&quot;/&gt; for the interface method being invoked.
+    /// &lt;/summary&gt;
+    MethodInfo InterfaceMethod { get; }
+
+    /// &lt;summary&gt;
+    /// Gets the &lt;see cref=&quot;MethodInfo&quot;/&gt; for the implementation method being invoked.
+    /// &lt;/summary&gt;
+    MethodInfo ImplementationMethod { get; }
+
+    /// &lt;summary&gt;
+    /// Gets the arguments for this method invocation.
+    /// &lt;/summary&gt;
+    object[] Arguments { get; }
+
+    /// &lt;summary&gt;
+    /// Invokes the request.
+    /// &lt;/summary&gt;
+    Task Invoke();
+
+    /// &lt;summary&gt;
+    /// Gets or sets the result.
+    /// &lt;/summary&gt;
+    object Result { get; set; }
+}
+</code></pre><p>的<code>IIncomingGrainCallFilter.Invoke(IIncomingGrainCallContext)</code>方法必须等待或返回的结果<code>IIncomingGrainCallContext.Invoke()</code>执行下一个配置的过滤器，最终执行grain方法本身。的<code>Result</code>可以在等待<code>Invoke()</code>方法。<code>ImplementationMethod</code>属性返回<code>MethodInfo</code>实现类。获取<code>MethodInfo</code>可以使用<code>InterfaceMethod</code>属性。对于所有对Grains的方法调用，都会调用Grains调用过滤器，其中包括对Grains扩展的调用(<code>IGrain扩展</code>)安装在Grains中。例如，grains扩展用于实现流和取消令牌。因此，应该期望<code>ImplementationMethod</code>在Grains类本身中并不总是一种方法。</p>
+<h2 id="配置传入呼叫过滤器">配置传入呼叫过滤器</h2>
+<p>的实现<code>IIncomingGrainCallFilter</code>可以通过Dependency Injection注册为silos级过滤器，也可以通过Grains实现将其注册为grains级过滤器<code>IIncomingGrainCallFilter</code>直。</p>
+<h3 id="silos范围内的所有访问过滤器">silos范围内的所有访问过滤器</h3>
+<p>可以使用Dependency Injection将委托注册为silos级的Grain调用过滤器，如下所示：</p>
+<pre><code class="lang-csharp">siloHostBuilder.AddIncomingGrainCallFilter(async context =&gt;
+{
+    // If the method being called is &#39;MyInterceptedMethod&#39;, then set a value
+    // on the RequestContext which can then be read by other filters or the grain.
+    if (string.Equals(context.InterfaceMethod.Name, nameof(IMyGrain.MyInterceptedMethod)))
+    {
+        RequestContext.Set(&quot;intercepted value&quot;, &quot;this value was added by the filter&quot;);
+    }
+
+    await context.Invoke();
+
+    // If the grain method returned an int, set the result to double that value.
+    if (context.Result is int resultValue) context.Result = resultValue * 2;
+});
+</code></pre><p>同样，可以使用<code>AddIncomingGrainCallFilter</code>辅助方法。这是一个grain调用过滤器的示例，它记录每个grain方法的结果：</p>
+<pre><code class="lang-csharp">public class LoggingCallFilter : IIncomingGrainCallFilter
+{
+    private readonly Logger log;
+
+    public LoggingCallFilter(Factory&lt;string, Logger&gt; loggerFactory)
+    {
+        this.log = loggerFactory(nameof(LoggingCallFilter));
+    }
+
+    public async Task Invoke(IIncomingGrainCallContext context)
+    {
+        try
+        {
+            await context.Invoke();
+            var msg = string.Format(
+                &quot;{0}.{1}({2}) returned value {3}&quot;,
+                context.Grain.GetType(),
+                context.InterfaceMethod.Name,
+                string.Join(&quot;, &quot;, context.Arguments),
+                context.Result);
+            this.log.Info(msg);
+        }
+        catch (Exception exception)
+        {
+            var msg = string.Format(
+                &quot;{0}.{1}({2}) threw an exception: {3}&quot;,
+                context.Grain.GetType(),
+                context.InterfaceMethod.Name,
+                string.Join(&quot;, &quot;, context.Arguments),
+                exception);
+            this.log.Info(msg);
+
+            // If this exception is not re-thrown, it is considered to be
+            // handled by this filter.
+            throw;
+        }
+    }
+}
+</code></pre><p>然后可以使用<code>AddIncomingGrainCallFilter</code>扩展方法：</p>
+<pre><code class="lang-csharp">siloHostBuilder.AddIncomingGrainCallFilter&lt;LoggingCallFilter&gt;();
+</code></pre><p>或者，可以在不使用扩展方法的情况下注册过滤器：</p>
+<pre><code class="lang-csharp">siloHostBuilder.ConfigureServices(
+    services =&gt; services.AddSingleton&lt;IIncomingGrainCallFilter, LoggingCallFilter&gt;());
+</code></pre><h3 id="每粒grains调用过滤器">每粒Grains调用过滤器</h3>
+<p>Grains类可以将自己注册为Grains调用过滤器，并可以通过实现对它的所有调用进行过滤<code>IIncomingGrainCallFilter</code>像这样：</p>
+<pre><code class="lang-csharp">public class MyFilteredGrain : Grain, IMyFilteredGrain, IIncomingGrainCallFilter
+{
+    public async Task Invoke(IIncomingGrainCallContext context)
+    {
+        await context.Invoke();
+
+        // Change the result of the call from 7 to 38.
+        if (string.Equals(context.InterfaceMethod.Name, nameof(this.GetFavoriteNumber)))
+        {
+            context.Result = 38;
+        }
+    }
+
+    public Task&lt;int&gt; GetFavoriteNumber() =&gt; Task.FromResult(7);
+}
+</code></pre><p>在上面的示例中，对<code>GetFavoriteNumber</code>方法将返回<code>38</code>代替<code>7</code>，因为返回值已被过滤器更改。</p>
+<p>过滤器的另一个用例是在访问控制中，如以下示例所示：</p>
+<pre><code class="lang-csharp">[AttributeUsage(AttributeTargets.Method)]
+public class AdminOnlyAttribute : Attribute { }
+
+public class MyAccessControlledGrain : Grain, IMyFilteredGrain, IIncomingGrainCallFilter
+{
+    public Task Invoke(IIncomingGrainCallContext context)
+    {
+        // Check access conditions.
+        var isAdminMethod = context.ImplementationMethod.GetCustomAttribute&lt;AdminOnlyAttribute&gt;();
+        if (isAdminMethod &amp;&amp; !(bool) RequestContext.Get(&quot;isAdmin&quot;))
+        {
+            throw new AccessDeniedException($&quot;Only admins can access {context.ImplementationMethod.Name}!&quot;);
+        }
+
+        return context.Invoke();
+    }
+
+    [AdminOnly]
+    public Task&lt;int&gt; SpecialAdminOnlyOperation() =&gt; Task.FromResult(7);
+}
+</code></pre><p>在以上示例中，<code>SpecialAdminOnlyOperation</code>该方法只能在以下情况下调用<code>“ isAdmin”</code>设定为<code>真正</code>在里面<code>RequestContext</code>。这样，可以将Grains调用过滤器用于授权。在此示例中，呼叫者有责任确保<code>“ isAdmin”</code>值设置正确，并且验证正确执行。请注意<code>[仅管理员]</code>属性是在Grains类方法上指定的。这是因为<code>实现方法</code>属性返回<code>方法信息</code>的实现，而不是接口。过滤器还可以检查<code>接口方法</code>属性。</p>
+<h2 id="grains呼叫过滤器的订购">grains呼叫过滤器的订购</h2>
+<p>Grains调用过滤器遵循定义的顺序：</p>
+<ol>
+<li><code>IIncomingGrainCallFilter</code>在依赖项注入容器中配置的实现(按注册顺序)。</li>
+<li>Grains级过滤器(如果使用Grains)<code>IIncomingGrainCallFilter</code>。</li>
+<li>grain方法实施或grain扩展方法实施。</li>
+</ol>
+<p>每次调用<code>IIncomingGrainCallContext.Invoke()</code>封装下一个定义的过滤器，以便每个过滤器都有机会在链中下一个过滤器之前和之后执行代码，并最终执行grain方法本身。</p>
+<h1 id="呼出调用过滤器">呼出调用过滤器</h1>
+<p>传出Grains调用过滤器类似于传入Grains调用过滤器，主要区别在于它们是在调用者(客户端)而不是被调用者(grains)上调用的。</p>
+<p>传出呼叫过滤器实现了<code>IOutgoingGrainCallFilter</code>接口，它具有一种方法：</p>
+<pre><code class="lang-csharp">public interface IOutgoingGrainCallFilter
+{
+    Task Invoke(IOutgoingGrainCallContext context);
+}
+</code></pre><p>的<code>IOutgoingGrainCallContext</code>参数传递给<code>Invoke</code>方法具有以下形状：</p>
+<pre><code class="lang-csharp">public interface IOutgoingGrainCallContext
+{
+    /// &lt;summary&gt;
+    /// Gets the grain being invoked.
+    /// &lt;/summary&gt;
+    IAddressable Grain { get; }
+
+    /// &lt;summary&gt;
+    /// Gets the &lt;see cref=&quot;MethodInfo&quot;/&gt; for the interface method being invoked.
+    /// &lt;/summary&gt;
+    MethodInfo InterfaceMethod { get; }
+
+    /// &lt;summary&gt;
+    /// Gets the arguments for this method invocation.
+    /// &lt;/summary&gt;
+    object[] Arguments { get; }
+
+    /// &lt;summary&gt;
+    /// Invokes the request.
+    /// &lt;/summary&gt;
+    Task Invoke();
+
+    /// &lt;summary&gt;
+    /// Gets or sets the result.
+    /// &lt;/summary&gt;
+    object Result { get; set; }
+}
+</code></pre><p>的<code>IOutgoingGrainCallFilter.Invoke(IOutgoingGrainCallContext)</code>方法必须等待或返回的结果<code>IOutgoingGrainCallContext.Invoke()</code>执行下一个配置的过滤器，最终执行grain方法本身。的<code>结果</code>可以在等待<code>调用()</code>方法。的<code>方法信息</code>可以使用<code>接口方法</code>属性。传出的Grains调用过滤器会针对所有对Grains的方法调用进行调用，其中包括对Orleans进行的系统方法的调用。</p>
+<h2 id="配置去电呼叫过滤器">配置去电呼叫过滤器</h2>
+<p>的实现<code>IOutgoingGrainCallFilter</code>可以使用依赖注入在silos和客户端上注册。</p>
+<p>可以将委托注册为呼叫过滤器，如下所示：</p>
+<pre><code class="lang-csharp">builder.AddOutgoingGrainCallFilter(async context =&gt;
+{
+    // If the method being called is &#39;MyInterceptedMethod&#39;, then set a value
+    // on the RequestContext which can then be read by other filters or the grain.
+    if (string.Equals(context.InterfaceMethod.Name, nameof(IMyGrain.MyInterceptedMethod)))
+    {
+        RequestContext.Set(&quot;intercepted value&quot;, &quot;this value was added by the filter&quot;);
+    }
+
+    await context.Invoke();
+
+    // If the grain method returned an int, set the result to double that value.
+    if (context.Result is int resultValue) context.Result = resultValue * 2;
+});
+</code></pre><p>在上面的代码中，<code>建造者</code>可能是<code>ISiloHostBuilder</code>要么<code>IClientBuilder</code>。</p>
+<p>同样，可以将一个类注册为传出的Grain调用过滤器。这是一个grain调用过滤器的示例，它记录每个grain方法的结果：</p>
+<pre><code class="lang-csharp">public class LoggingCallFilter : IOutgoingGrainCallFilter
+{
+    private readonly Logger log;
+
+    public LoggingCallFilter(Factory&lt;string, Logger&gt; loggerFactory)
+    {
+        this.log = loggerFactory(nameof(LoggingCallFilter));
+    }
+
+    public async Task Invoke(IOutgoingGrainCallContext context)
+    {
+        try
+        {
+            await context.Invoke();
+            var msg = string.Format(
+                &quot;{0}.{1}({2}) returned value {3}&quot;,
+                context.Grain.GetType(),
+                context.InterfaceMethod.Name,
+                string.Join(&quot;, &quot;, context.Arguments),
+                context.Result);
+            this.log.Info(msg);
+        }
+        catch (Exception exception)
+        {
+            var msg = string.Format(
+                &quot;{0}.{1}({2}) threw an exception: {3}&quot;,
+                context.Grain.GetType(),
+                context.InterfaceMethod.Name,
+                string.Join(&quot;, &quot;, context.Arguments),
+                exception);
+            this.log.Info(msg);
+
+            // If this exception is not re-thrown, it is considered to be
+            // handled by this filter.
+            throw;
+        }
+    }
+}
+</code></pre><p>然后可以使用<code>AddOutgoingGrainCallFilter</code>扩展方法：</p>
+<pre><code class="lang-csharp">builder.AddOutgoingGrainCallFilter&lt;LoggingCallFilter&gt;();
+</code></pre><p>或者，可以在不使用扩展方法的情况下注册过滤器：</p>
+<pre><code class="lang-csharp">builder.ConfigureServices(
+    services =&gt; services.AddSingleton&lt;IOutgoingGrainCallFilter, LoggingCallFilter&gt;());
+</code></pre><p>与委托调用过滤器示例一样，<code>建造者</code>可能是以下任何一个的实例<code>ISiloHostBuiler</code>要么<code>IClientBuilder</code>。</p>
+<h2 id="用例">用例</h2>
+<h3 id="异常转换">异常转换</h3>
+<p>当从服务器引发的异常在客户端上反序列化时，有时可能会收到以下异常，而不是实际的异常：<code>TypeLoadException：找不到Whatever.dll。</code></p>
+<p>如果包含异常的程序集对客户端不可用，则会发生这种情况。例如，假设您在grain实现中使用实体框架；那么有可能<code>EntityException</code>被抛出。另一方面，客户端不(也不应该)引用<code>EntityFramework.dll</code>因为它不了解基础数据访问层。</p>
+<p>当客户端尝试反序列化<code>EntityException</code>，它将因缺少DLL而失败；结果是<code>TypeLoadException类型加载异常</code>把原来的东西藏起来了<code>实体异常</code>.</p>
+<p>有人可能会说这很好，因为客户永远不会处理<code>实体异常</code>否则就得参考<code>EntityFramework.dll</code>.</p>
+<p>但是如果客户端希望至少记录异常呢？问题是原来的错误消息丢失了。解决此问题的一种方法是截获服务器端异常并用类型的纯异常替换它们<code>例外</code>如果异常类型可能在客户端未知。</p>
+<p>然而，有一件重要的事我们必须牢记：我们只想替换一个例外<strong>如果调用者是Grains客户</strong>. 如果调用者是另一个grain(或者正在进行grain调用的Orleans基础设施；例如<code>GrainBasedReminderTable</code>Grains)。</p>
+<p>在服务器端，这可以通过silos级别的拦截器来实现：</p>
+<pre><code class="lang-csharp">public class ExceptionConversionFilter : IIncomingGrainCallFilter
+{
+    private static readonly HashSet&lt;string&gt; KnownExceptionTypeAssemblyNames =
+        new HashSet&lt;string&gt;
+        {
+            typeof(string).Assembly.GetName().Name,
+            &quot;System&quot;,
+            &quot;System.ComponentModel.Composition&quot;,
+            &quot;System.ComponentModel.DataAnnotations&quot;,
+            &quot;System.Configuration&quot;,
+            &quot;System.Core&quot;,
+            &quot;System.Data&quot;,
+            &quot;System.Data.DataSetExtensions&quot;,
+            &quot;System.Net.Http&quot;,
+            &quot;System.Numerics&quot;,
+            &quot;System.Runtime.Serialization&quot;,
+            &quot;System.Security&quot;,
+            &quot;System.Xml&quot;,
+            &quot;System.Xml.Linq&quot;,
+
+            &quot;MyCompany.Microservices.DataTransfer&quot;,
+            &quot;MyCompany.Microservices.Interfaces&quot;,
+            &quot;MyCompany.Microservices.ServiceLayer&quot;
+        };
+
+    public async Task Invoke(IIncomingGrainCallContext context)
+    {
+        var isConversionEnabled =
+            RequestContext.Get(&quot;IsExceptionConversionEnabled&quot;) as bool? == true;
+        if (!isConversionEnabled)
+        {
+            // If exception conversion is not enabled, execute the call without interference.
+            await context.Invoke();
+            return;
+        }
+
+        RequestContext.Remove(&quot;IsExceptionConversionEnabled&quot;);
+        try
+        {
+            await context.Invoke();
+        }
+        catch (Exception exc)
+        {
+            var type = exc.GetType();
+
+            if (KnownExceptionTypeAssemblyNames.Contains(type.Assembly.GetName().Name))
+            {
+                throw;
+            }
+
+            // Throw a base exception containing some exception details.
+            throw new Exception(
+                string.Format(
+                    &quot;Exception of non-public type &#39;{0}&#39; has been wrapped.&quot;
+                    + &quot; Original message: &lt;&lt;&lt;&lt;----{1}{2}{3}----&gt;&gt;&gt;&gt;&quot;,
+                    type.FullName,
+                    Environment.NewLine,
+                    exc,
+                    Environment.NewLine));
+        }
+    }
+}
+</code></pre><p>然后可以在silos上注册此筛选器：</p>
+<pre><code class="lang-csharp">siloHostBuilder.AddIncomingGrainCallFilter&lt;ExceptionConversionFilter&gt;();
+</code></pre><p>通过添加传出呼叫筛选器，为客户端发出的呼叫启用筛选器：</p>
+<pre><code class="lang-csharp">clientBuilder.AddOutgoingGrainCallFilter(context =&gt;
+{
+    RequestContext.Set(&quot;IsExceptionConversionEnabled&quot;, true);
+    return context.Invoke();
+});
+</code></pre><p>这样，客户端就告诉服务器它要使用异常转换。</p>
+<h3 id="从拦截器呼叫grains">从拦截器呼叫Grains</h3>
+<p>通过注入，可以从拦截器发出grain调用<code>IGR工厂</code>进入拦截器类：</p>
+<pre><code class="lang-csharp">private readonly IGrainFactory grainFactory;
+
+public CustomCallFilter(IGrainFactory grainFactory)
+{
+  this.grainFactory = grainFactory;
+}
+
+public async Task Invoke(IIncomingGrainCallContext context)
+{
+  // Hook calls to any grain other than ICustomFilterGrain implementations.
+  // This avoids potential infinite recursion when calling OnReceivedCall() below.
+  if (!(context.Grain is ICustomFilterGrain))
+  {
+    var filterGrain = this.grainFactory.GetGrain&lt;ICustomFilterGrain&gt;(context.Grain.GetPrimaryKeyLong());
+
+    // Perform some grain call here.
+    await filterGrain.OnReceivedCall();
+  }
+
+  // Continue invoking the call on the target grain.
+  await context.Invoke();
+}
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/interceptors.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans Architecture - Principles and Approach I | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans Architecture - Principles and Approach I | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+
+<p>既然Orleans(最终)可以作为开源使用，那么了解促成Orleans背后的设计决策的目标和原则很重要，这样新的变化要么适合该框架，要么明确地并有意地修改那些目标和原则。</p>
+<p>在我加入Orleans项目时，我们同意目标是建立一个框架，使主流开发人员可以轻松构建可扩展的分布式(云)应用程序。要对此进行细分：</p>
+<ul>
+<li><p><strong>目标读者不应排除尚未完成分布式系统开发的程序员</strong>。我们希望使所有开发人员，无论是云专家还是云初学者，都可以专注于他们的应用程序逻辑和功能(即真正提供业务价值的内容)，而不是通用的分布式系统问题。</p>
+</li>
+<li><p><strong>目的是让他们轻松构建云应用程序</strong>。轻松地意味着，他们不必比绝对需要多考虑分配。轻松地也意味着Orleans应该尽可能向开发人员展示熟悉的外观；在.NET上下文中，这意味着C＃对象和接口。</p>
+</li>
+<li><p><strong>这些应用程序应该是*“默认情况下可扩展”</strong>*。由于我们的目标用户不一定是分布式系统专家，因此我们希望为他们提供一个框架，使他们无需明确考虑即可构建可扩展的应用程序。这意味着该框架必须为它们做出很多决定，以确保可接受的可扩展性程度，即使这意味着可扩展性并非对每个应用程序都是最佳的。</p>
+</li>
+</ul>
+<p>我们通过一系列架构原则对这一目标进行了补充：</p>
+<ul>
+<li><p><strong>我们专注于80％的案例</strong>。当然，有些应用程序不适合Orleans使用；没关系。有一些Orleans适合的应用程序，但是通过Orleans不允许的大量手动调整，您可以在其中获得更好的性能。也可以Orleans的80％可以很好地拟合并在许多有趣的应用程序上表现出色，我们宁愿80％上做得很好，也不愿99％上做得不好。</p>
+</li>
+<li><p><strong>可扩展性至关重要</strong>。如果可以更好地进行扩展，我们将权衡原始性能。</p>
+</li>
+<li><p><strong>可用性至关重要</strong>。云应用程序应该像实用程序：随时随地都可以使用。</p>
+</li>
+<li><p><strong>检测并修复问题</strong>，不要以为您可以100％阻止它们。在云规模上，坏事经常发生，甚至不可能发生的坏事也很少发生。这导致了我们通常被称为“面向恢复的计算”，而不是试图做到容错。我们的经验表明，容错能力很弱，而且常常是虚幻的。即使是经过数学验证的协议也无法防止内存或磁盘控制器中的随机位翻转在报告成功时失败，这是我在职业生涯中已经看到的真实示例。</p>
+</li>
+</ul>
+<p>以上导致我们采取了某些做法：</p>
+<ul>
+<li><p><strong>API优先设计</strong>：如果我们不知道如何向开发人员公开功能，那么我们就不会构建它。当然，最好的方法是使功能完全不接触开发人员。</p>
+</li>
+<li><p><strong>轻松做正确的事</strong>：要使事情尽可能简单(但不要简单)，如果螺丝刀是正确的工具，请不要用锤子砸。正如我们的早期采用者之一所说的那样，我们试图帮助客户“落入成功之坑”。如果有一个标准模式可以很好地适合80％的应用程序，那么不必担心启用所有可能的替代方法。Orleans对异步的拥护就是一个很好的例子。</p>
+</li>
+<li><p><strong>使开发人员轻松扩展框架而不破坏框架</strong>。自定义序列化和持久化提供程序就是其中的几个示例。某种自定义任务计划扩展将是反示例。</p>
+</li>
+<li><p><strong>遵循最少惊喜的原则</strong>：尽可能使事物熟悉，但一切都应按照外观进行。</p>
+</li>
+</ul>
+<p>下一篇文章将开始将这些原理应用于当前的Orleans设计，并逐步探究我们做出的某些特定决策的动机。</p>
+<p>谢谢阅读！</p>
+<p>艾伦·盖勒</p>
+<p><em>艾伦·盖勒，<a href="http://research.microsoft.com/en-us/people/ageller/">http://research.microsoft.com/en-us/people/ageller/</a>，在Microsoft Research从事量子计算。从2008年到2012年，他是Orleans的主要架构师之一。在此之前，从2004年到2008年，他是Amazon Web Services的平台架构师，在此之前，他在电信和金融服务领域构建了各种大型生产分布式系统。</em></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/resources/orleans_architecture_principles_and_approach_I.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

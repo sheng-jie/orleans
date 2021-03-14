@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>What is a grain client | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="What is a grain client | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h3 id="什么是grains客户">什么是Grains客户？</h3>
+
+<p>术语“客户端”或有时“Grains客户端”用于与Grains交互的应用程序代码，但它本身不是Grains逻辑的一部分。客户端代码在Orleans服务器集群(称为silos)之外运行，这些服务器集群承载Grains。因此，客户端充当到集群和应用程序所有Grain的连接器或管道。</p>
+<p><img src="images/frontend_cluster.png" alt=""></p>
+<p>通常，在前端web服务器上使用客户端连接到作为中间层的orleans集群，其中grains执行业务逻辑。在典型设置中，前端Web服务器：</p>
+<ul>
+<li>接收Web请求</li>
+<li>执行必要的身份验证和授权验证</li>
+<li>决定应处理请求的Grains</li>
+<li>使用Grain客户端对Grain进行一个或多个方法调用</li>
+<li>处理grain调用和任何返回值的成功完成或失败</li>
+<li>发送对Web请求的响应</li>
+</ul>
+<h3 id="grains客户端初始化">Grains客户端初始化</h3>
+<p>在使用grain客户端调用orleans集群中托管的grain之前，需要对其进行配置、初始化并连接到集群。</p>
+<p>配置通过<code>客户端生成器</code>以及许多补充选项类，其中包含用于以编程方式配置客户端的配置属性层次结构。</p>
+<p>更多信息可以在<a href="configuration_guide/client_configuration.html">客户端配置指南</a>是的。</p>
+<p>客户端配置示例：</p>
+<pre><code class="lang-csharp">var client = new ClientBuilder()
+    // Clustering information
+    .Configure&lt;ClusterOptions&gt;(options =&gt;
+    {
+        options.ClusterId = &quot;my-first-cluster&quot;;
+        options.ServiceId = &quot;MyOrleansService&quot;;
+    })
+    // Clustering provider
+    .UseAzureStorageClustering(options =&gt; options.ConnectionString = connectionString)
+    // Application parts: just reference one of the grain interfaces that we use
+    .ConfigureApplicationParts(parts =&gt; parts.AddApplicationPart(typeof(IValueGrain).Assembly))
+    .Build();
+</code></pre><p>最后，我们需要调用<code>Connect()</code>方法，使其连接到Orleans群集。它是一个异步方法，返回<code>Task</code>是的。所以我们需要等待它的完成await或<code>.等等()</code>是的。</p>
+<pre><code class="lang-csharp">await client.Connect();
+</code></pre><h3 id="调用给grains">调用给Grains</h3>
+<p>从客户那里调用给grain和<a href="../grains/index.html">在grain代码中进行这样的调用</a>是的。相同的<code>getgrain&lt;t&gt;(key)</code>方法，其中<code>T</code>是目标grains接口，在两种情况下都使用<a href="../grains/index.html#grain-reference">获取Grains引用</a>是的。细微的区别在于我们调用的工厂对象<code>获取grains</code>是的。在客户端代码中，我们通过连接的客户端对象来实现这一点。</p>
+<pre><code class="lang-csharp">IPlayerGrain player = client.GetGrain&lt;IPlayerGrain&gt;(playerId);
+Task t = player.JoinGame(game)
+await t;
+</code></pre><p>对grain方法的调用返回<code>Task</code>或者<code>Task&lt;t&gt;</code>根据<a href="../grains/index.html">grains接口规则</a>是的。客户可以使用await关键字异步等待返回的<code>Task</code>没有阻塞线程，或者在某些情况下<code>等待()</code>方法来阻止当前执行线程。</p>
+<p>从客户端代码和从另一个Grain内部调用grains的主要区别在于grains的单线程执行模型。Grains被orleans运行时限制为单线程，而客户端可能是多线程的。Orleans没有在客户端提供任何这样的保证，因此客户端需要使用适合其环境的任何同步构造来管理自己的并发性—锁、事件，<code>Task</code>等等。</p>
+<h3 id="接收通知">接收通知</h3>
+<p>在某些情况下，简单的请求-响应模式是不够的，客户端需要接收异步通知。例如，当某个用户发布了她正在跟踪的新消息时，该用户可能希望收到通知。</p>
+<p><a href="../grains/observers.html">观察者</a>是一种这样的机制，它允许将客户端对象公开为类似于grains的目标，以供grains调用。对观察者的访问并没有提供任何成功或失败的迹象，因为它们是作为单向尽力信息发送的。因此，应用程序代码有责任在必要时在观察者之上构建更高级别的可靠性机制。</p>
+<p>另一种可用于向客户端传递异步消息的机制是<a href="../streaming/index.html">Streams</a>是的。流暴露了单个消息传递成功或失败的迹象，因此能够与客户端进行可靠的通信。</p>
+<h3 id="例子">例子</h3>
+<p>这是上面给出的一个客户端应用程序的扩展版本，该客户端应用程序连接到Orleans，查找玩家帐户，向观察家订阅玩家参与的游戏会话的更新，并打印出通知，直到程序手动终止。</p>
+<pre><code class="lang-csharp">namespace PlayerWatcher
+{
+    class Program
+    {
+        /// &lt;summary&gt;
+        /// Simulates a companion application that connects to the game
+        /// that a particular player is currently part of, and subscribes
+        /// to receive live notifications about its progress.
+        /// &lt;/summary&gt;
+        static void Main(string[] args)
+        {
+            RunWatcher().Wait();
+            // Block main thread so that the process doesn&#39;t exit.
+            // Updates arrive on thread pool threads.
+            Console.ReadLine();
+        }
+
+        static async Task RunWatcher()
+        {
+            try
+
+            {
+            var client = new ClientBuilder()
+                // Clustering information
+                .Configure&lt;ClusterOptions&gt;(options =&gt;
+                {
+                    options.ClusterId = &quot;my-first-cluster&quot;;
+                    options.ServiceId = &quot;MyOrleansService&quot;;
+                })
+                // Clustering provider
+                .UseAzureStorageClustering(options =&gt; options.ConnectionString = connectionString)
+                // Application parts: just reference one of the grain interfaces that we use
+                .ConfigureApplicationParts(parts =&gt; parts.AddApplicationPart(typeof(IValueGrain).Assembly))
+                .Build();
+
+                // Hardcoded player ID
+                Guid playerId = new Guid(&quot;{2349992C-860A-4EDA-9590-000000000006}&quot;);
+                IPlayerGrain player = client.GetGrain&lt;IPlayerGrain&gt;(playerId);
+                IGameGrain game = null;
+
+                while (game == null)
+                {
+                    Console.WriteLine(&quot;Getting current game for player {0}...&quot;, playerId);
+
+                    try
+                    {
+                        game = await player.GetCurrentGame();
+                        if (game == null) // Wait until the player joins a game
+                        {
+                            await Task.Delay(5000);
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        Console.WriteLine(&quot;Exception: &quot;, exc.GetBaseException());
+                    }
+                }
+
+                Console.WriteLine(&quot;Subscribing to updates for game {0}...&quot;, game.GetPrimaryKey());
+
+                // Subscribe for updates
+                var watcher = new GameObserver();
+                await game.SubscribeForGameUpdates(
+                    await client.CreateObjectReference&lt;IGameObserver&gt;(watcher));
+
+                Console.WriteLine(&quot;Subscribed successfully. Press &lt;Enter&gt; to stop.&quot;);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(&quot;Unexpected Error: {0}&quot;, exc.GetBaseException());
+            }
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Observer class that implements the observer interface. Need to pass a grain reference to an instance of this class to subscribe for updates.
+    /// &lt;/summary&gt;
+    class GameObserver : IGameObserver
+    {
+        // Receive updates
+        public void UpdateGameScore(string score)
+        {
+            Console.WriteLine(&quot;New game score: {0}&quot;, score);
+        }
+    }
+    }
+}
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/index.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

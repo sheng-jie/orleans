@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Persistence | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Persistence | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="持久化">持久化</h1>
+
+<p>Grains可以具有多个与之关联的命名持久数据对象。在激活Grains期间会从存储中加载此状态，以便在请求期间可以使用它们。Grain持久化使用可扩展的插件模型，因此可以使用任何数据库的存储提供程序。此持久化模型仅出于简化目的而设计，并不旨在涵盖所有数据访问模式。Grains还可以直接访问数据库，而无需使用Grains持久化模型。</p>
+<p><img src="../../images/grain_state_1.png" alt="A grain can have multiple persisted data objects each stored in a different storage system"></p>
+<p>在上图中，UserGrain有一个<em>Profile</em>状态和<em>Cart</em>状态，每个状态都存储在单独的存储系统中。</p>
+<h2 id="目标">目标</h2>
+<ol>
+<li>每个Grains有多个命名的持久数据对象。</li>
+<li>多个配置的存储提供程序，每个存储提供程序可以具有不同的配置并由不同的存储系统支持。</li>
+<li>存储提供商可以由社区开发和发布。</li>
+<li>存储提供者可以完全控制他们如何在持久化后备存储中存储Grains状态数据。结论：Orleans没有提供全面的ORM存储解决方案，但允许自定义存储提供商在需要时支持特定的ORM要求。</li>
+</ol>
+<h2 id="配套">配套</h2>
+<p>可以在以下位置找到OrleansGrains存储提供商<a href="https://www.nuget.org/packages?q=Orleans+Persistence">NuGet</a>。官方维护的软件包包括：</p>
+<ul>
+<li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet">Microsoft.Orleans.Persistence.AdoNet</a>适用于ADO.NET支持的SQL数据库和其他存储系统。有关更多信息，请参见<a href="relational_storage.html">ADO.NETGrain持久化</a>。</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AzureStorage">Microsoft.Orleans.Persistence.AzureStorage</a>通过Azure Table Storage API访问Azure存储，包括Azure Blob存储，Azure表存储和Azure CosmosDB。有关更多信息，请参见<a href="azure_storage.html">Azure存储Grain持久化</a>。</li>
+<li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Persistence.DynamoDB">Microsoft.Orleans.Persistence.DynamoDB</a>适用于Amazon DynamoDB。有关更多信息，请参见<a href="dynamodb_storage.html">Amazon DynamoDBGrain持久化</a>。</li>
+</ul>
+<h2 id="api">API</h2>
+<p>Grains与它们的持久状态相互作用<code>IPersistentState &lt;TState&gt;</code>哪里<code>State</code>是可序列化状态类型：
+Grains通过<code>IPersistentState&lt;TState&gt;</code>（其中<code>&lt;TState&gt;</code>为其可序列化状态类型）与它们的持久化状态交互。</p>
+<pre><code class="lang-csharp">public interface IPersistentState&lt;TState&gt; where TState : new()
+{
+  TState State { get; set; }
+  string Etag { get; }
+  Task ClearStateAsync();
+  Task WriteStateAsync();
+  Task ReadStateAsync();
+}
+</code></pre><p><code>IPersistentState &lt;TState&gt;</code>的实例作为构造函数参数注入到Grains中。这些参数可以用<code>[PersistentState(stateName，storageName)]</code>属性来标识要注入的状态的名称以及提供状态存储提供程序的名称。以下示例通过将两个命名状态注入到<code>UserGrain</code>构造函数：</p>
+<pre><code class="lang-csharp">public class UserGrain : Grain, IUserGrain
+{
+  private readonly IPersistentState&lt;ProfileState&gt; _profile;
+  private readonly IPersistentState&lt;CartState&gt; _cart;
+
+  public UserGrain(
+    [PersistentState(&quot;profile&quot;, &quot;myGrainStorage&quot;)] IPersistentState&lt;ProfileState&gt; profile,
+    [PersistentState(&quot;cart&quot;, &quot;cartStorage&quot;)] IPersistentState&lt;CartState&gt; cart,
+    )
+  {
+    _profile = profile;
+    _cart = cart;
+  }
+}
+</code></pre><p>即使它们是同一类型，不同的Grain类型也可以使用不同的配置存储提供程序：例如，两个不同的Azure Table Storage提供程序实例连接到不同的Azure存储帐户。</p>
+<h3 id="读取状态">读取状态</h3>
+<p>当激活grains时，将自动读取grains状态，但是grains负责在必要时显式触发任何更改的grains状态的写入。</p>
+<p>如果某个Grains希望从后备存储中明确重新读取该Grains的最新状态，则该Grains应调用<code>ReadStateAsync()</code>方法。
+这将通过存储提供程序从持久存储重新加载Grain状态，并且当<code>ReadStateAsync()</code>任务完成时，将覆盖和替换之前的内存状态副本。</p>
+<p>使用以下命令访问状态值<code>State</code>属性。例如，以下方法访问上面的代码中声明的配置文件状态：</p>
+<pre><code class="lang-csharp">public Task&lt;string&gt; GetNameAsync() =&gt; Task.FromResult(_profile.State.Name);
+</code></pre><p>无需调用<code>ReadStateAsync()</code>在正常操作期间：在激活期间自动加载状态。然而，<code>ReadStateAsync()</code>可以用来刷新外部修改的状态。</p>
+<p>见<a href="#FailureModes">失败模式</a>以下部分提供了有关错误处理机制的详细信息。</p>
+<h3 id="写入状态">写入状态</h3>
+<p>状态可以通过<code>State</code>属性。修改后的状态不会自动保持。相反，开发人员通过调用<code>WriteStateAsync()</code>方法。例如，以下方法更新一个属性<code>State</code>并保持更新状态：</p>
+<pre><code class="lang-csharp">public async Task SetNameAsync(string name)
+{
+  _profile.State.Name = name;
+  await _profile.WriteStateAsync();
+}
+</code></pre><p>从概念上讲，Orleans运行时将在任何写入操作期间获取Grains状态数据对象的深层副本以供其自己使用。在幕后，运行时<em>可能</em>在保留预期的逻辑隔离语义的前提下，使用优化规则和试探法避免在某些情况下执行部分或全部深度复制。</p>
+<p>见<a href="#FailureModes">失败模式</a>以下部分提供了有关错误处理机制的详细信息。</p>
+<h3 id="状态清理">状态清理</h3>
+<p><code>ClearStateAsync()</code>方法清除存储中的Grains状态。根据提供者，此操作可以选择完全删除grains状态。</p>
+<h2 id="入门">入门</h2>
+<p>在Grains可以使用持久化之前，必须在silos上配置存储提供程序。</p>
+<p>首先，配置存储提供程序：</p>
+<pre><code class="lang-csharp">var host = new HostBuilder()
+  .UseOrleans(siloBuilder =&gt;
+  {
+    // Configure Azure Table storage using the name &quot;profileStore&quot;
+    siloBuilder.AddAzureTableGrainStorage(
+      name: &quot;profileStore&quot;,
+      configureOptions: options =&gt;
+      {
+        // Use JSON for serializing the state in storage
+        options.UseJson = true;
+
+        // Configure the storage connection key
+        options.ConnectionString = &quot;DefaultEndpointsProtocol=https;AccountName=data1;AccountKey=SOMETHING1&quot;;
+      });
+    // -- other options
+  })
+  .Build();
+</code></pre><p>现在，已经使用名称配置了存储提供程序<code>“ profileStore”</code>，我们可以从Grains访问此提供程序。</p>
+<p>持久状态可以通过两种主要方式添加到Grains中：</p>
+<ol>
+<li>通过注入<code>IPersistentState &lt;TState&gt;</code>进入Grains的构造函数</li>
+<li>通过继承<code>Grain&lt;TState&gt;</code></li>
+</ol>
+<p>推荐的添加Grains存储方式的方法是通过注入<code>IPersistentState&lt;TState&gt;</code>并关联<code>[PersistentState(&quot;stateName&quot;,&quot; providerName&quot;)]</code>属性到Grains的构造函数。有关详细信息<a href="#使用Grain&lt;TState&gt;为Grains指定存储"><code>GrainsTState&gt;</code>， 见下文</a>。仍支持此功能，但被认为是旧版。</p>
+<p>声明一个类来保持我们的Grains状态：</p>
+<pre><code class="lang-csharp">[Serializable]
+public class ProfileState
+{
+  public string Name { get; set; }
+
+  public Date DateOfBirth
+}
+</code></pre><p>注入<code>IPersistentState &lt;配置文件状态&gt;</code>到Grains的构造函数中：</p>
+<pre><code class="lang-csharp">public class UserGrain : Grain, IUserGrain
+{
+  private readonly IPersistentState&lt;ProfileState&gt; _profile;
+
+  public UserGrain([PersistentState(&quot;profile&quot;, &quot;profileStore&quot;)] IPersistentState&lt;ProfileState&gt; profile)
+  {
+    _profile = profile;
+  }
+}
+</code></pre><p>注意：配置文件状态在注入到构造函数中时不会被加载，因此那时访问它是无效的。该状态将在<code>OnActivateAsync</code>调用。</p>
+<p>现在，grain具有持久状态，我们可以添加读取和写入状态的方法：</p>
+<pre><code class="lang-csharp">public class UserGrain : Grain, IUserGrain
+{
+  private readonly IPersistentState&lt;ProfileState&gt; _profile;
+
+  public UserGrain([PersistentState(&quot;profile&quot;, &quot;profileStore&quot;)] IPersistentState&lt;ProfileState&gt; profile)
+  {
+    _profile = profile;
+  }
+
+  public Task&lt;string&gt; GetNameAsync() =&gt; Task.FromResult(_profile.State.Name);
+
+  public async Task SetNameAsync(string name)
+  {
+    _profile.State.Name = name;
+    await _profile.WriteStateAsync();
+  }
+}
+</code></pre><h2 id="持久化操作的失败模式-a-namefailuremodesa">持久化操作的失败模式 <a name="FailureModes"></a></h2>
+<h3 id="读取操作的失败模式">读取操作的失败模式</h3>
+<p>存储提供程序在初始读取该特定Grain的状态数据期间返回的故障将导致Grain的激活操作失败;在这种情况下，将不调用该Grain的<code>OnActivateAsync()</code>生命周期回调方法。
+导致激活该Grain的失败的原始请求将像在Grain激活期间任何其他故障一样返回给调用方。</p>
+<p>存储提供程序在读取特定Grains的状态数据时遇到失败，将导致<code>ReadStateAsync()</code> 任务失败。Grains可以选择处理或忽略该故障<code>Task</code>，就像其他任何东西一样<code>Task</code>在Orleans。</p>
+<p>由于缺少/错误的存储提供程序配置，任何在silos启动时无法加载消息的尝试都会返回永久错误<code>Orleans.BadProviderConfigException</code>。</p>
+<h3 id="写入操作的失败模式">写入操作的失败模式</h3>
+<p>存储提供程序在写入特定Grains的状态数据时遇到失败，将导致<code>WriteStateAsync()</code> 任务失败。通常，这将意味着Grain调用将把错误返回给客户端调用者，前提是<code>WriteStateAsync()</code>任务被正确地链接到这个Grain方法最终返回的<code>Task</code>中。但是，某些高级方案可能会编写Grain代码来专门处理此类错误，就像它们可以处理任何其他错误一样<code>Task</code>。</p>
+<p>执行错误处理/恢复代码的Grains<em>必须</em>捕获<code>WriteStateAsync()</code>任务的异常/错误，而不重新抛出以表示它们已成功处理了写入错误。</p>
+<h2 id="推荐建议">推荐建议</h2>
+<h3 id="使用json序列化或其他版本容忍的序列化格式">使用JSON序列化或其他版本容忍的序列化格式</h3>
+<p>代码会随着时间的推移而发展，并且通常还包括存储类型。为了适应这些更改，应配置适当的序列化方式。对于大多数存储提供商而言，<code>Json</code>选项或类似选项可用于将JSON用作序列化格式。确保在发展数据合同时，已经存储的数据仍然可以加载。</p>
+<h2 id="使用graintstate为grains指定存储">使用Grain<tstate>为Grains指定存储</tstate></h2>
+<p><strong>注意：</strong>使用<code>grains&lt;T&gt;</code>为Grainsz指定存储考虑为<em>遗留</em>功能：应使用以下方式添加Grains存储<code>IPersistentState &lt;T&gt;</code>如前所述。</p>
+<p>继承自的Grains类<code>grains&lt;T&gt;</code>(哪里<code>T</code>是需要保留的特定于应用程序的状态数据类型)，将从指定存储中自动加载其状态。</p>
+<p>此类Grains标有<code>[StorageProvider]</code>该属性指定一个存储提供程序的命名实例，该实例用于读取/写入此Grains的状态数据。</p>
+<pre><code class="lang-csharp">[StorageProvider(ProviderName=&quot;store1&quot;)]
+public class MyGrain : Grain&lt;MyGrainState&gt;, /*...*/
+{
+  /*...*/
+}
+</code></pre><p>的<code>grains&lt;T&gt;</code>基类定义了以下方法供子类调用：</p>
+<pre><code class="lang-csharp">protected virtual Task ReadStateAsync() { /*...*/ }
+protected virtual Task WriteStateAsync() { /*...*/ }
+protected virtual Task ClearStateAsync() { /*...*/ }
+</code></pre><p>这些方法的行为对应于<code>IPersistentState &lt;TState&gt;</code>较早定义。</p>
+<h2 id="创建存储提供程序">创建存储提供程序</h2>
+<p>状态持久化API有两部分：通过<code>IPersistentState &lt;T&gt;</code>要么<code>grains&lt;T&gt;</code>，
+以及以<code>IGrainStorage</code>为中心的存储提供程序API——存储提供程序必须实现的接口。</p>
+<pre><code class="lang-csharp">/// &lt;summary&gt;
+/// Interface to be implemented for a storage able to read and write Orleans grain state data.
+/// &lt;/summary&gt;
+public interface IGrainStorage
+{
+  /// &lt;summary&gt;Read data function for this storage instance.&lt;/summary&gt;
+  /// &lt;param name=&quot;grainType&quot;&gt;Type of this grain [fully qualified class name]&lt;/param&gt;
+  /// &lt;param name=&quot;grainReference&quot;&gt;Grain reference object for this grain.&lt;/param&gt;
+  /// &lt;param name=&quot;grainState&quot;&gt;State data object to be populated for this grain.&lt;/param&gt;
+  /// &lt;returns&gt;Completion promise for the Read operation on the specified grain.&lt;/returns&gt;
+  Task ReadStateAsync(string grainType, GrainReference grainReference, IGrainState grainState);
+
+  /// &lt;summary&gt;Write data function for this storage instance.&lt;/summary&gt;
+  /// &lt;param name=&quot;grainType&quot;&gt;Type of this grain [fully qualified class name]&lt;/param&gt;
+  /// &lt;param name=&quot;grainReference&quot;&gt;Grain reference object for this grain.&lt;/param&gt;
+  /// &lt;param name=&quot;grainState&quot;&gt;State data object to be written for this grain.&lt;/param&gt;
+  /// &lt;returns&gt;Completion promise for the Write operation on the specified grain.&lt;/returns&gt;
+  Task WriteStateAsync(string grainType, GrainReference grainReference, IGrainState grainState);
+
+  /// &lt;summary&gt;Delete / Clear data function for this storage instance.&lt;/summary&gt;
+  /// &lt;param name=&quot;grainType&quot;&gt;Type of this grain [fully qualified class name]&lt;/param&gt;
+  /// &lt;param name=&quot;grainReference&quot;&gt;Grain reference object for this grain.&lt;/param&gt;
+  /// &lt;param name=&quot;grainState&quot;&gt;Copy of last-known state data object for this grain.&lt;/param&gt;
+  /// &lt;returns&gt;Completion promise for the Delete operation on the specified grain.&lt;/returns&gt;
+  Task ClearStateAsync(string grainType, GrainReference grainReference, IGrainState grainState);
+}
+</code></pre><p>通过实现此接口来创建自定义存储提供程序，并<a href="#注册存储提供商">注册</a>该实施。有关现有存储提供程序实现的示例，请参见<a href="https://github.com/dotnet/orleans/blob/af974d37864f85bfde5dc02f2f60bba997f2162d/src/Azure/Orleans.Persistence.AzureStorage/Providers/Storage/AzureBlobStorage.cs"><code>AzureBlobGrainStorage</code></a>。</p>
+<h3 id="存储提供程序语义">存储提供程序语义</h3>
+<p>特定于不透明的提供者<code>Etag</code>值(<code>string</code>)<em>可能</em>由存储提供者设置为读取状态时填充的Grains状态元数据的一部分。一些提供商可能选择将此保留为<code>null</code>如果他们不使用<code>Etag</code>。</p>
+<p>当存储提供程序检测到<code>Etag</code>约束违反_should_时，任何执行写操作的尝试都会导致写<code>Task</code>出现故障，并出现瞬时抛出<code>Orleans.InconsistentStateException</code>异常并并包装基础存储异常。</p>
+<pre><code class="lang-csharp">public class InconsistentStateException : OrleansException
+{
+  public InconsistentStateException(
+    string message,
+    string storedEtag,
+    string currentEtag,
+    Exception storageException)
+    : base(message, storageException)
+  {
+    this.StoredEtag = storedEtag;
+    this.CurrentEtag = currentEtag;
+  }
+
+  public InconsistentStateException(string storedEtag, string currentEtag, Exception storageException)
+    : this(storageException.Message, storedEtag, currentEtag, storageException)
+  { }
+
+  /// &lt;summary&gt;The Etag value currently held in persistent storage.&lt;/summary&gt;
+  public string StoredEtag { get; private set; }
+
+  /// &lt;summary&gt;The Etag value currently held in memory, and attempting to be updated.&lt;/summary&gt;
+  public string CurrentEtag { get; private set; }
+}
+</code></pre><p>来自存储操作的任何其他失败条件都会导致返回的<code>Task</code>被中断，并出现一个异常，指示底层存储问题。在许多情况下，此异常可能会返回给调用方，后者通过在Grains上调用方法来触发存储操作。重要的是要考虑调用者是否可以反序列化此异常。例如，客户端可能尚未加载包含异常类型的特定持久化库。因此，建议将异常转换为可以传播回调用方的异常。</p>
+<h3 id="数据映射">数据映射</h3>
+<p>各个存储提供者应决定如何最好地存储Grains状态-blob(各种格式/序列化形式)或每字段列是显而易见的选择。</p>
+<h3 id="注册存储提供商">注册存储提供商</h3>
+<p>Orleans运行时将从服务提供商那里解析存储提供商(<code>IServiceProvider</code>)创建Grain时。运行时将解析一个实例<code>IGrainStorage</code>。如果存储提供者已命名，例如通过<code>[PersistentState(stateName，storageName)]</code>属性，然后是的命名实例<code>IGrainStorage</code>将得到解决。</p>
+<p>注册的命名实例<code>IGrainStorage</code>， 使用<code>IServiceCollection.AddSingletonNamedService</code>扩展方法，可以参考以下<a href="https://github.com/dotnet/orleans/blob/af974d37864f85bfde5dc02f2f60bba997f2162d/src/Azure/Orleans.Persistence.AzureStorage/Hosting/AzureTableSiloBuilderExtensions.cs#L78">AzureTableGrainStorage提供程序</a>。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/grain_persistence/index.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

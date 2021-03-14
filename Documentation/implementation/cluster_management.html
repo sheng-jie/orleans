@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Cluster Management in Orleans | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Cluster Management in Orleans | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleans的集群管理">Orleans的集群管理</h1>
+
+<p>Orleans通过一个内置的成员协议提供集群管理，我们有时将其称为<strong>silos成员资格</strong>. 为了让新Orleans的所有服务器都加入到silos(silos)的协议中，目前还没有达成一致，即允许新Orleans的silos加入到silos中。</p>
+<p>协议依赖于一个外部服务来提供<code>成员资格表</code>. <code>成员资格表</code>是一个平面的非SQL类型的持久表，我们有两个用途。首先，它被用作一个集合点，供各自为政的人互相寻找，而Orleans的客户则用来寻找silos。其次，它用于存储当前的成员资格视图(活动silos列表)，并帮助协调成员资格视图上的协议。我们目前有6个<code>成员资格表</code>：基于<a href="https://docs.microsoft.com/en-us/azure/storage/storage-dotnet-how-to-use-tables">Azure表存储</a>，SQL server，<a href="https://ZooKeeper.apache.org/">阿帕奇动物园管理员</a>, <a href="https://www.consul.io">IO领事</a>, <a href="https://aws.amazon.com/dynamodb/">AWS发电机B</a>，以及内存仿真以进行开发。除了<code>成员资格表</code>每个silos都参与完全分布式的对等成员身份协议，该协议检测出故障的silos，并就“设置活动silos”达成一致。我们首先在下面描述Orleans成员协议的内部实现，然后描述<code>成员资格表</code>.</p>
+<h3 id="基本成员协议">基本成员协议：</h3>
+<ol>
+<li><p>在启动时，每个silos都将自己写入一个著名的<code>成员资格表</code>(通过配置传递)。silos标识的组合(<code>ip地址：端口：epoch</code>)和服务部署id用作表中的唯一键。Epoch就是这个silos开始时的计时单位<code>ip地址：端口：epoch</code>保证在给定的Orleans部署中是独一无二的。</p>
+</li>
+<li><p>silos通过应用程序ping相互直接监视(“你还活着吗”<code>心跳</code>). ping作为直接消息从silos发送到silos，通过silos通信的同一个TCP套接字。这样，ping与实际的网络问题和服务器运行状况完全相关。每一个silos都会发出另一个silos的声音。一个silos通过计算其他silos标识上的一致散列值来挑选要ping的对象，形成一个包含所有标识的虚拟环，并在该环上选择X个后继silo(这是一种著名的分布式技术，称为<a href="https://en.wikipedia.org/wiki/Consistent_hashing">一致哈希</a>在许多分布式哈希表中被广泛使用，比如<a href="https://en.wikipedia.org/wiki/Chord_(peer-to-peer)">弦式DHT</a>).</p>
+</li>
+<li><p>如果silosS没有从受监视的服务器P获得Y ping响应，它会通过将其带有时间戳的怀疑写入P的行中来怀疑它<code>成员资格表</code>.</p>
+</li>
+<li><p>如果P在K秒内有超过Z个怀疑，那么S会将P写入P的行中，并向所有silos广播一个重新读取成员表的请求(无论如何，它们都会定期执行)。</p>
+</li>
+<li><p>更多详情：</p>
+<p>5.1怀疑被写入<code>成员资格表</code>，在对应于P的行中的一个特殊列中。当S怀疑P时，它写下：“at time TTT S successed P”。</p>
+<p>5.2一次怀疑不足以宣告P死亡。您需要在一个可配置的时间窗口T(通常为3分钟)内，从不同的silos中得到Z个怀疑，才能将P声明为dead。使用由<code>成员资格表</code>.</p>
+<p>5.3可疑silosS显示P行。</p>
+<p>5.4如果S是最后一个嫌疑犯(如嫌疑栏中所述，在时间段T内已经有Z-1嫌疑犯)，S决定宣布P死亡。在本例中，S将自己添加到suspencers列表中，并在P的Status列中写入P is Dead。</p>
+<p>5.5否则，如果S不是最后一个suspencers，则S只将自己添加到suspencers列中。</p>
+<p>5.6在任何一种情况下，回写都使用读取的版本号或etag，因此对此行的更新是序列化的。如果由于版本/etag不匹配而导致写入失败，S将重试(再次读取并尝试写入，除非P已标记为dead)。</p>
+<p>5.7在较高的层次上，“读取、本地修改、回写”序列是一个事务。但是，我们没有使用存储事务来实现这一点。“事务”代码在服务器上本地执行，我们使用<code>成员资格表</code>以确保隔离和原子性。</p>
+</li>
+<li><p>每个silos定期读取整个成员表以进行部署。通过这种方式，silos了解到新的silos加入以及其他silos被宣布死亡。</p>
+</li>
+<li><p><strong>配置</strong>：我们提供了一个默认配置，它是在我们在Azure中的生产使用过程中手动调整的。目前的默认值是：每个silos由另外3个silos监视，2个怀疑足以宣布一个silos失效，怀疑仅从最后3分钟开始(否则它们就过时了)。每10秒发送一次ping，您需要错过3次ping才能怀疑一个silos。</p>
+</li>
+<li><p><strong>实施完美故障检测</strong>–理论上，如果一个silos与其他silos失去通信，而silos进程本身仍在运行，则该silos将被宣布为死机。为了解决这个问题，一旦silos在表中被声明为dead，每个人都认为它已经死了，即使它实际上没有死(只是暂时分区或者心跳消息丢失)。每个人都停止与它交流，一旦它知道它死了(通过从表中读取它自己的新状态)，它就会自杀并关闭进程。因此，必须有一个适当的基础设施来重新启动silos作为一个新的进程(在启动时会生成一个新的epoch编号)。当它托管在Azure中时，会自动发生这种情况。如果没有，就需要另一个基础设施。例如，配置为在发生故障时自动重新启动的Windows服务。</p>
+</li>
+<li><p><strong>优化以减少定期表读取的频率，并加快所有silos学习新的连接silos和死silos</strong>. 每当任何silos成功地向表中写入任何内容(怀疑、新联接，…)时，它也会广播到所有其他silos—“现在就去重新读取表”。silos不会告诉其他人它在表中写了什么(因为这些信息可能已经过时/错误)，它只是告诉他们重新读取表。这样我们就可以很快地了解成员身份的变化，而不需要等待整个周期性的读取周期。我们仍然需要定期读取，以防“重新读取表”消息丢失。</p>
+</li>
+</ol>
+<h3 id="基本成员协议的属性和常见问题解答">基本成员协议的属性和常见问题解答：</h3>
+<ol>
+<li><strong>可以处理任何数量的失败</strong>–我们的算法可以处理任何数量的失败(即f&lt;=n)，包括完全重启集群。这与“传统”形成鲜明对比<a href="https://en.wikipedia.org/wiki/Paxos_(computer_science)">帕克索斯</a>基于解决方案，需要法定人数，通常是多数。我们已经看到在生产情况下，一半以上的silos都关闭了。我们的系统仍然正常运行，而基于Paxos的会员制将无法取得进展。</li>
+<li><strong>去餐桌的交通非常少</strong>-实际的ping直接在服务器之间进行，而不是发送到表中。这将产生大量的流量，而且从故障检测的角度来看是不够准确的-如果一个silos无法到达表，它将无法写入它的“我是活着的”心跳，其他人会杀死他。</li>
+<li><p><strong>可调精度与完整性</strong> – <a href="http://www.cs.yale.edu/homes/aspnes/pinewiki/FailureDetectors.html">一般来说，完美和准确的故障检测是不可能的</a>. 人们通常希望能够在准确性和完整性之间进行权衡(不想将一个真正活着的silos声明为死silos)和完整性(希望尽快声明一个实际上已经死了的silos)。可配置的声明死亡和错过ping的投票允许交易这两个。</p>
+</li>
+<li><p><strong>比例尺</strong>-基本协议可以处理数千个甚至可能是数万个服务器。这与传统的<a href="https://en.wikipedia.org/wiki/Paxos_(computer_science)">帕克索斯</a>基于解决方案，如组通信协议，已知其规模不会超过10个。</p>
+</li>
+<li><p><strong>诊断学</strong>-该表也非常便于诊断和故障排除。系统管理员可以立即在表中找到活动的silos的当前列表，以及查看所有被杀死的silos和怀疑的历史。这在诊断问题时特别有用。</p>
+</li>
+<li><p><strong>为什么我们需要可靠的持久存储来实现<code>成员资格表</code>?</strong>-我们为<code>成员资格表</code>有两个目的。首先，它被用作一个集合点，供各自为政的人互相寻找，而Orleans的客户则用来寻找silos。第二，我们使用可靠的存储来帮助我们协调成员观点上的协议。当我们以对等的方式在silos之间直接执行故障检测时，我们将成员资格视图存储在一个可靠的存储器中，并使用该存储器提供的并发控制机制来达成谁活着谁死的协议。这样，在某种意义上，我们的协议将分布式共识的难题外包给了云。因为我们充分利用了底层云平台的力量，真正将其作为“平台即服务”。</p>
+</li>
+<li><p><strong>如果一段时间内无法访问该表，会发生什么情况？</strong>(存储服务关闭、不可用或存在通信问题)–在这种情况下，我们的协议不会错误地宣布silos死机。目前运行的silos将继续工作，没有任何问题。但是，我们不能声明一个silos死机(如果我们通过丢失的ping检测到一些silos死机，我们将无法将此事实写入表中)，也无法允许新的silos加入。所以完整性会受到影响，但是准确性不会——从表中进行分区永远不会导致我们错误地宣布思洛死了。另外，在部分网络分区的情况下(如果一些silos可以访问表，而另一些silos不能访问表)，我们可能会将一个死silos声明为死silos，但在所有其他silos了解到它之前，还需要一些时间。所以检测可以延迟，但我们绝不会因为表格不可用而误杀他人。</p>
+</li>
+<li><p><strong>直接IAmAlive写入表仅用于诊断</strong>-除了在silos之间发送的心跳信号外，每个silos还定期更新表中其行中的“我还活着”列。“我还活着”一栏只供使用<strong>用于手动故障排除和诊断</strong>并且不被成员协议本身使用。它通常以较低的频率编写(每5分钟一次)，它是系统管理员检查集群活动性或轻松找出silos上次活动的时间的非常有用的工具。</p>
+</li>
+</ol>
+<h3 id="完全订购成员资格视图的扩展">完全订购成员资格视图的扩展：</h3>
+<p>上面描述的基本成员协议后来被扩展为支持完全有序的成员关系视图。我们将简要描述这个扩展的原因以及它是如何实现的。扩展在上述设计中没有任何改变，只是添加了一个附加属性，即所有成员配置都是全局完全有序的。</p>
+<p><strong>为什么完全订购成员视图是有用的？</strong></p>
+<ul>
+<li><p>这允许序列化新silos到集群的连接。这样，当一个新的silos加入集群时，它就可以验证与其他已经启动的silos的双向连接。如果一些已加入的silos没有应答(可能表明新silos存在网络连接问题)，则不允许新silos加入。这可以确保至少在一个silos启动时，集群中所有silos之间都有完整的连接(这是实现的)。</p>
+</li>
+<li><p>silos中的更高级别协议(如分布式grain directory)可以利用成员关系视图被排序的事实，并使用这些信息来执行更智能的重复激活解析。特别是，当directory发现在成员身份不断变化时创建了2个激活，它可能会决定停用基于现在过时的成员身份信息创建的旧激活(目前尚未实现)。</p>
+</li>
+</ul>
+<p><strong>扩展成员协议：</strong></p>
+<ol>
+<li><p>为了实现此功能，我们利用了<code>成员资格表</code>..</p>
+</li>
+<li><p>我们向跟踪表更改的表添加成员身份版本行。</p>
+</li>
+<li><p>当silo S想为silo P写怀疑或死亡声明时：</p>
+<p>3.1s读取最新的表格内容。如果P已经死了，什么也不做。否则，</p>
+<p>3.2在同一事务中，将更改写入P的行，并增加版本号并将其写回表中。</p>
+<p>3.3两次写入都使用ETag进行调节。</p>
+<p>3.4如果事务因P行或版本行上的eTag不匹配而中止，请重试。</p>
+</li>
+<li><p>所有对表的写入都会修改和增加版本行。这样，所有对表的写入都被序列化(通过将更新序列化到version行)，并且由于silos只增加版本号，所以写入操作也完全按递增顺序排列。</p>
+</li>
+</ol>
+<p><strong>扩展成员协议的可扩展性：</strong></p>
+<p>在协议的扩展版本中，所有写操作都通过一行进行序列化。这可能会损害集群managemenet协议的可伸缩性，因为它增加了并发表写入之间发生冲突的风险。为了部分缓解这个问题，silos通过使用指数回退来重试它们对表的所有写入操作。我们已经观察到扩展的协议在Azure中有多达200个silos的生产环境中能够顺利地工作。然而，我们确实认为该协议在扩展到一千个silos之外可能存在问题。在这样的大型设置中，对版本行的更新很容易被禁用，基本上保留了集群managemenet协议的其余部分，并放弃了total ordering属性。还请注意，这里我们指的是集群管理协议的可伸缩性，而不是Orleans的其他地方。我们相信Orleans运行时的其他部分(消息传递、分布式目录、grain托管、客户端到网关连接)的可扩展性远远超过了数百个Silo。</p>
+<h3 id="成员表">成员表：</h3>
+<p>如前所述，<code>成员资格表</code>它被用作一个集合点，供思洛寻找彼此和Orleans客户查找思洛，还帮助协调成员关系视图上的协议。我们目前有6个<code>成员资格表</code>：基于Azure Table、SQL server、Apache ZooKeeper、Consult IO、AWS DynamoDB和内存仿真进行开发。的接口<code>成员资格表</code>在中定义<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans/SystemTargetInterfaces/IMembershipTable.cs"><strong><code>IMembershipTable</code></strong></a>.</p>
+<ol>
+<li><p><a href="https://docs.microsoft.com/en-us/azure/storage/storage-dotnet-how-to-use-tables">Azure表存储</a>-在这个实现中，我们使用Azure部署ID作为分区键和silos标识(<code>ip地址：端口：epoch</code>)作为行键。它们一起保证每个silos都有一个唯一的密钥。对于并发控制，我们使用基于<a href="https://docs.microsoft.com/en-us/rest/api/storageservices/Update-Entity2">Azure表ETag</a>. 每次从表中读取时，我们为每个读取行存储etag，并在尝试回写时使用该etag。每次写入时，Azure表服务都会自动分配和检查etag。对于多行事务，我们利用<a href="https://docs.microsoft.com/en-us/rest/api/storageservices/Performing-Entity-Group-Transactions">Azure表提供的批处理事务</a>，它保证在具有相同分区键的行上序列化事务。</p>
+</li>
+<li><p>SQL Server—在此实现中，配置的部署ID用于区分部署以及哪些silos属于哪些部署。silos标识定义为<code>部署ID，ip，端口，epoch</code>在适当的表和列中。关系后端使用乐观并发控制和事务，类似于在Azure表实现上使用etag的过程。关系实现期望数据库引擎生成所使用的ETag。对于SQL Server，在SQL Server 2000上，生成的ETag是通过调用<a href="https://www.microsoft.com/en-us/download/details.aspx?id=51958">新ID()</a>. 在SQL Server 2005及更高版本上<a href="https://docs.microsoft.com/en-us/sql/t-sql/data-types/rowversion-transact-sql">行版本</a>被使用。Orleans读写关系etag是不透明的<code>变量二进制(16)</code>标记并将它们存储在内存中作为<a href="https://en.wikipedia.org/wiki/Base64">基准64</a>编码字符串。Orleans支持使用UNION ALL(对于Oracle包括DUAL)的多行插入，UNION ALL当前用于插入统计数据。SQL Server的具体实现和基本原理请参见<a href="https://github.com/dotnet/orleans/blob/ba30bbb2155168fc4b9f190727220583b9a7ae4c/src/OrleansSQLUtils/CreateOrleansTables_SqlServer.sql">创建或清理马厩_sql服务器.sql</a>.</p>
+</li>
+<li><p><a href="https://ZooKeeper.apache.org/">阿帕奇动物园管理员</a>-在这个实现中，我们使用配置的部署ID作为根节点和silos标识(<code>ip:端口@epoch</code>)作为其子节点。它们共同保证了每个silos的唯一路径。对于并发控制，我们使用基于<a href="http://zookeeper.apache.org/doc/r3.4.6/zookeeperOver.html#Nodes+and+ephemeral+nodes">节点版本</a>. 每次从部署根节点读取时，都会存储每个读取子思洛节点的版本，并在尝试回写时使用该版本。每当一个节点的数据发生变化时，ZooKeeper服务就会自动地增加版本号。对于多行事务，我们使用<a href="http://zookeeper.apache.org/doc/r3.4.6/api/org/apache/zookeeper/ZooKeeper.html#multi(java.lang.Iterable)">多方法</a>，它保证在具有相同父部署ID节点的silos节点上可序列化事务。</p>
+</li>
+<li><p><a href="https://www.consul.io">IO领事</a>-我们用过<a href="https://www.consul.io/intro/getting-started/kv.html">执政官的钥匙/价值商店</a>推动membershop表。参考<a href="../deployment/consul_deployment.html">执政官部署</a>更多细节。</p>
+</li>
+<li><p><a href="https://aws.amazon.com/dynamodb/">AWS发电机B</a>-在这个实现中，我们使用集群部署ID作为分区键和silos标识(<code>ip端口生成</code>)作为使记录统一的RangeKey。乐观并发由<code>ETag</code>属性通过在DynamoDB上进行条件写入来实现。实现逻辑与Azure表存储非常相似。我们只实现了基本成员协议(而不是扩展协议)。</p>
+</li>
+<li><p>内存模拟开发设置。我们使用一种特殊的系统grains，叫做<code>成员资格表</code>，以便实现。这些Grains存放在指定的主silos中，该silos仅用于<strong>开发设置</strong>. 在任何实际生产使用情况下，主silos<strong>不是必需的</strong>.</p>
+</li>
+</ol>
+<h3 id="配置">配置：</h3>
+<p>成员协议通过<code>活泼</code>元素<code>全球</code>分段<code>Orleans配置.xml</code>文件。默认值在Azure的生产使用年限中进行了调整，我们相信它们代表了良好的默认设置。一般来说，没有必要改变它们。</p>
+<p>配置元素示例：</p>
+<pre><code class="lang-xml">&lt;Liveness ProbeTimeout = &quot;5s&quot; TableRefreshTimeout =&quot;10s  DeathVoteExpirationTimeout =&quot;80s&quot; NumMissedProbesLimit = &quot;3&quot; NumProbedSilos=&quot;3&quot; NumVotesForDeathDeclaration=&quot;2&quot; /&gt;
+</code></pre><p>实现了4种类型的活跃度。活动协议的类型通过<code>系统存储类型</code>属性<code>系统存储</code>元素<code>全球</code>分段<code>Orleans配置.xml</code>文件。</p>
+<ol>
+<li><p><code>成员资格表</code>-成员表存储在主silos上的一个Grains中。这是一个<strong>仅开发设置</strong>.</p>
+</li>
+<li><p><code>可定制</code>-成员表存储在Azure表中。</p>
+</li>
+<li><p><code>SQL服务器</code>-成员表存储在关系数据库中。</p>
+</li>
+<li><p><code>动物园管理员</code>-成员表存储在ZooKeeper中<a href="http://zookeeper.apache.org/doc/r3.4.6/zookeeperAdmin.html#sc_zkMulitServerSetup">合奏</a>.</p>
+</li>
+<li><p><code>执政官</code>-配置为自定义系统存储<code>MembershipTableAssembly=“orleansConsultils”</code>.  参考<a href="../deployment/consul_deployment.html">执政官部署</a>更多细节。</p>
+</li>
+<li><p><code>发电机B</code>-配置为自定义系统存储<code>MembershipTableAssembly=“OrleansAWSUtils”</code>.</p>
+</li>
+</ol>
+<p>对于所有活动类型，公共配置变量在中定义<code>全球化。活力</code>要素：</p>
+<ol>
+<li><p><code>问题时间</code>-我要给他们的“发射室”发送信号。默认值为10秒。</p>
+</li>
+<li><p><code>表刷新超时</code>-从成员资格表获取更新的秒数。默认值为60秒。</p>
+</li>
+<li><p><code>死亡呼气超时</code>-成员表中死亡投票的过期时间(秒)。默认值为120秒</p>
+</li>
+<li><p><code>努米塞德普斯里米</code>t-从一个silos丢失的“我还活着”心跳信号消息的数量，或者导致怀疑该silos已死亡的未应答探测的数量。默认值为3。</p>
+</li>
+<li><p><code>纽普罗贝斯洛斯</code>-每个silos探测活跃度的silos数量。默认值为3。</p>
+</li>
+<li><p><code>NumVotesForDeath声明</code>-宣布某个silos死亡所需的未过期投票数(最多应为numissedprobeslimit)。默认值为2。</p>
+</li>
+<li><p><code>闲言碎语</code>-是否使用八卦优化来加速活跃度信息的传播。默认值为true。</p>
+</li>
+<li><p><code>IAmAliveTablePublishTimeout</code>-定期在成员资格表中写入此silos处于活动状态的秒数。仅用于诊断。默认值为5分钟。</p>
+</li>
+<li><p><code>NumMissedTableIAmAliveLimit</code>-表中从silos中丢失的导致记录警告的“我还活着”更新的数量。不影响活动协议。默认值为2。</p>
+</li>
+<li><p><code>MaxJoinAttemptTime</code>-在放弃之前尝试加入一个silos群的秒数。默认值为5分钟。</p>
+</li>
+<li><p><code>预期群集大小</code>-群集的预期大小。不必很准确，可以高估。用于优化要写入Azure表的重试的指数退避算法。默认值为20。</p>
+</li>
+</ol>
+<h3 id="设计原理">设计原理：</h3>
+<p>一个很自然的问题是为什么不完全依赖<a href="https://ZooKeeper.apache.org/">阿帕奇动物园管理员</a>对于集群成员身份实现，可能会使用<a href="http://zookeeper.apache.org/doc/trunk/recipes.html#sc_outOfTheBox">具有短暂节点的群成员关系</a>? 为什么我们要费心实施我们自己的会员协议？主要有三个原因：</p>
+<p>(一)<strong>在云中部署/托管</strong>-Zookeeper不是一个托管服务(至少在撰写本文的2015年7月，当然，当我们在2011年夏天首次实现该协议时，没有任何一个主流云提供商将Zookeeper作为托管服务运行)。这意味着在云环境中，Orleans的客户必须部署/运行/管理自己的ZK集群实例。这只是又一个不必要的负担，我们不想强迫我们的客户。通过使用Azure表，我们依赖于托管的托管服务，这使我们的客户的生活更加简单。<em>基本上，在云计算中，将云用作平台，而不是基础设施。</em>另一方面，在本地运行和管理自己的服务器时，依赖ZK作为<code>成员资格表</code>是一个可行的选择。</p>
+<p>(二)<strong>直接故障检测</strong>-当将ZK的组成员资格用于临时节点时，将在Orleans服务器(ZK客户端)和ZK服务器之间执行故障检测。这可能不一定与Orleans服务器之间的实际网络问题相关。<em>我们希望故障检测能够准确地反映集群内通信的状态。</em>具体来说，在我们的设计中，如果Orleanssilos不能与<code>成员资格表</code>它不被认为是死的，可以继续工作。与此相反，如果我们将ZK组成员资格用于临时节点，那么与ZK服务器的断开连接可能会导致Orleans silo(ZK client)被声明为dead，而实际上它可能是活动的并且完全正常工作。</p>
+<p>(三)<strong>便携性和灵活性</strong>-作为Orleans哲学的一部分，我们不想强迫任何特定的技术，而是要有一个灵活的设计，在这种设计中，不同的组件可以很容易地用不同的实现进行切换。这正是紫色<code>成员资格表</code>抽象服务。</p>
+<h3 id="致谢">致谢：</h3>
+<p>我们要感谢<a href="https://www.linkedin.com/in/alex-kogan-3a2b52">亚历克斯·科根</a>本协议的第一版的设计与实现。这项工作是2011年夏天微软研究所暑期实习的一部分。基于ZooKeeper的实现<code>成员资格表</code>是由谁完成的<a href="https://github.com/shayhatsor">夏伊·哈佐</a>SQL的实现<code>成员资格表</code>是由谁完成的<a href="https://github.com/veikkoeeva">维科·伊娃</a>AWS DynamoDB的实现<code>成员资格表</code>是由谁完成的<a href="https://github.com/galvesribeiro/">古腾堡里贝罗</a>并以consur为基础实现<code>成员资格表</code>是由谁完成的<a href="https://github.com/PaulNorth">保罗·诺斯</a>.</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/implementation/cluster_management.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

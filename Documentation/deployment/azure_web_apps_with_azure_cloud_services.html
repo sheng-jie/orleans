@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#20351;&#29992;Azure Web Apps&#21644;Azure Cloud Services | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#20351;&#29992;Azure Web Apps&#21644;Azure Cloud Services | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="将azure-web应用与azure云服务一起使用">将azure web应用与azure云服务一起使用</h1>
+
+<p>如果你想从<a href="http://azure.microsoft.com/en-gb/services/app-service/web/">azure web应用</a>而不是托管在同一个云服务中的web角色。</p>
+<p>要使其安全工作，您需要将azure web应用和托管silos的工作角色都分配给<a href="http://azure.microsoft.com/en-gb/services/virtual-network/">azure虚拟网络</a>是的。</p>
+<p>首先，我们将设置azure web应用程序，您可以跟随<a href="https://azure.microsoft.com/en-us/blog/azure-websites-virtual-network-integration/">本指南</a>它将创建虚拟网络并将其分配给azure web应用程序。</p>
+<p>现在我们可以通过修改<code>服务配置</code>文件。</p>
+<pre><code class="lang-xml">&lt;NetworkConfiguration&gt;
+  &lt;VirtualNetworkSite name=&quot;virtual-network-name&quot; /&gt;
+  &lt;AddressAssignments&gt;
+    &lt;InstanceAddress roleName=&quot;role-name&quot;&gt;
+      &lt;Subnets&gt;
+        &lt;Subnet name=&quot;subnet-name&quot; /&gt;
+      &lt;/Subnets&gt;
+    &lt;/InstanceAddress&gt;
+  &lt;/AddressAssignments&gt;
+&lt;/NetworkConfiguration&gt;
+</code></pre><p>还要确保已配置silos终结点。</p>
+<pre><code class="lang-xml">&lt;Endpoints&gt;
+  &lt;InternalEndpoint name=&quot;OrleansSiloEndpoint&quot; protocol=&quot;tcp&quot; port=&quot;11111&quot; /&gt;
+  &lt;InternalEndpoint name=&quot;OrleansProxyEndpoint&quot; protocol=&quot;tcp&quot; port=&quot;30000&quot; /&gt;
+&lt;/Endpoints&gt;
+</code></pre><p>现在您可以从web应用连接到集群的其余部分。</p>
+<h3 id="潜在问题">潜在问题</h3>
+<p>如果Web应用无法连接到silos：</p>
+<ul>
+<li>确保你至少有<strong>两个角色</strong>，或者在你的azure云服务中一个角色的两个实例，或者<code>内部终结点</code>不能生成防火墙规则。</li>
+<li>检查Web应用程序和silos是否使用相同的<code>棒状的</code>和<code>服务ID</code>是的。</li>
+<li>确保网络安全组设置为允许内部虚拟网络连接。如果您没有一个，您可以创建和分配一个很容易使用以下<code>PowerShell</code>以下内容：</li>
+</ul>
+<pre><code class="lang-c">New-AzureNetworkSecurityGroup -Name &quot;Default&quot; -Location &quot;North Europe&quot;
+Get-AzureNetworkSecurityGroup -Name &quot;Default&quot; | Set-AzureNetworkSecurityGroupToSubnet -VirtualNetworkName &quot;virtual-network-name&quot; -SubnetName &quot;subnet-name&quot;
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/azure_web_apps_with_azure_cloud_services.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

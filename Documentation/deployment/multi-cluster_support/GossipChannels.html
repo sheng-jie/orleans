@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Multi-Cluster Communication | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Multi-Cluster Communication | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h2 id="多集群通信">多集群通信</h2>
+
+<p>网络的配置必须使任何Orleanssilos都可以通过TCP/IP连接到任何其他Orleanssilos，而不管它位于世界的哪个位置。具体如何实现这一点不在Orleans的范围内，因为这取决于silos的部署方式和地点。</p>
+<p>例如，在windows azure上，我们可以使用vnets连接一个区域内的多个部署，并使用网关连接不同区域的vnets。</p>
+<h3 id="群集id">群集ID</h3>
+<p>每个群集都有自己唯一的群集ID。必须在全局配置中指定群集ID。</p>
+<p>群集ID不能为空，也不能包含逗号。此外，如果使用azure表存储，则群集ID不能包含行键(/，\，，？)所禁止的字符。是的。</p>
+<p>我们建议对集群id使用非常短的字符串，因为集群id经常传输，并且可能由一些日志视图提供程序存储在存储器中。</p>
+<h3 id="群集网关">群集网关</h3>
+<p>每个集群都会自动指定其活动silos的一个子集作为<em>群集网关</em>是的。群集网关直接向其他群集公布其IP地址，因此可以充当“第一联系人”。默认情况下，最多10个silos(或配置为<code>MaxMultiClusterGateways系列</code>)被指定为群集网关。</p>
+<p>不同集群中的silos之间的通信<em>不</em>总是经过一个关口。一旦一个silos知道并缓存了一个Grains激活的位置(无论在哪个集群中)，它就直接向该silos发送消息，即使silos不是集群网关。</p>
+<h3 id="八卦">八卦</h3>
+<p>gossip是集群共享配置和状态信息的机制。顾名思义，八卦是分散的、双向的：每个silos直接与其他silos通信，无论是在同一个集群中还是在其他集群中，以便在两个方向上交换信息。</p>
+<p><strong>内容</strong>是的。八卦包含以下部分或全部信息：</p>
+<ul>
+<li>当前时间戳<a href="MultiClusterConfiguration.html">多群集配置</a>是的。</li>
+<li>包含有关群集网关信息的字典。密钥是silos地址，该值包含(1)时间戳，(2)群集ID和(3)状态，状态可以是活动的，也可以是非活动的。</li>
+</ul>
+<p><strong>快速和慢速传播</strong>是的。当网关更改其状态，或当操作员注入新配置时，此八卦信息将立即发送到所有silos、集群和八卦频道。这种情况发生得很快，但并不可靠。如果消息由于任何原因(如竞争、套接字中断、silos故障)而丢失，我们定期的背景八卦会确保信息最终传播，尽管传播速度会更慢。所有信息最终都会在任何地方传播，并且对偶尔的消息丢失和失败具有很强的弹性。</p>
+<p>所有八卦数据都有时间戳，这样可以确保更新的信息替换旧的信息，而不管消息的相对时间。例如，较新的多群集配置替换较旧的配置，而有关网关的较新信息替换有关该网关的较旧信息。有关八卦数据表示的更多详细信息，请参见<code>多簇数据</code>上课。它有一个<code>合并</code>方法，该方法结合八卦数据，使用时间戳解决冲突。</p>
+<h3 id="八卦频道">八卦频道</h3>
+<p>当silos首次启动或故障后重新启动时，它需要有一种方法<strong>揭发流言蜚语</strong>是的。这是<em>八卦频道</em>，可以在<a href="SiloConfiguration.html">silos配置</a>是的。启动时，一个Silo从八卦频道获取所有信息。启动后，silos每隔30秒或任何配置为<code>背景消息间隔</code>是的。每次它与从所有群集网关和八卦频道中随机选择的伙伴同步八卦信息。</p>
+<p>笔记：</p>
+<ul>
+<li><p>虽然不是严格要求，但我们建议始终在不同的区域配置至少两个八卦频道，以获得更好的可用性。</p>
+</li>
+<li><p>与八卦频道沟通的延迟并不重要。</p>
+</li>
+<li><p>只要serviceid guid(由它们各自的配置指定)是不同的，多个不同的服务就可以使用相同的八卦频道而不受干扰。</p>
+</li>
+<li><p>没有严格要求所有silos使用相同的八卦频道，只要频道足够让silos在启动时最初与“八卦社区”连接。但是，如果八卦频道不是silos配置的一部分，并且silos是网关，则它不会将其状态更新推送到频道(快速传播)，因此在通过周期性背景八卦(慢速传播)到达频道之前，可能需要更长的时间。</p>
+</li>
+</ul>
+<h4 id="基于azure表的八卦频道">基于azure表的八卦频道</h4>
+<p>我们已经实现了一个基于azure表的八卦频道。配置指定用于azure帐户的标准连接字符串。例如，一个配置可以使用单独的azure存储帐户指定两个八卦频道<code>美国</code>和<code>欧洲</code>具体如下：</p>
+<pre><code class="lang-csharp">var silo = new SiloHostBuilder()
+  [...]
+  .Configure&lt;MultiClusterOptions&gt;(options =&gt; 
+  {
+    [...]
+    options.GossipChannels.Add(&quot;AzureTable&quot;, &quot;DefaultEndpointsProtocol=https;AccountName=usa;AccountKey=...&quot;);
+    options.GossipChannels.Add(&quot;AzureTable&quot;, &quot;DefaultEndpointsProtocol=https;AccountName=europe;AccountKey=...&quot;)
+    [...]
+  })
+  [...]
+</code></pre><p>多个不同的服务可以使用相同的八卦频道而不受干扰，只要它们各自配置指定的serviceid guid是不同的。</p>
+<h4 id="其他八卦频道实现">其他八卦频道实现</h4>
+<p>我们正在研究其他八卦频道提供商，类似于如何为许多不同的存储后端打包成员资格和提醒。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/multi-cluster_support/GossipChannels.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

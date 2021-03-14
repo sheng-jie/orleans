@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Messaging Delivery Guarantees | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Messaging Delivery Guarantees | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="消息传递保证">消息传递保证</h1>
+
+<p>Orleans消息传递保证是<strong>最多一次</strong>， 默认。可选地，如果配置为在超时后重试，则Orleans提供至少一次传送。</p>
+<p>更详细地：</p>
+<ul>
+<li><p>Orleans中的每条消息都有自动超时(可以配置确切的超时)。如果答复未按时到达，则返回的Task会中断，并出现超时异常。</p>
+</li>
+<li><p>可以将Orleans配置为在超时后自动重试。默认情况下，它不会自动重试。</p>
+</li>
+<li><p>当然，应用程序代码也可以选择在超时时重试。</p>
+</li>
+</ul>
+<p>如果将Orleans系统配置为不执行自动重试(默认设置)，并且应用程序未重新发送，<strong>Orleans最多提供一次消息传递</strong>。一条消息将被发送一次或完全不发送。<strong>它永远不会被交付两次。</strong></p>
+<p>在具有重试功能的系统中(通过运行时或应用程序)，消息可能多次到达。Orleans目前不采取任何措施来持久存储哪些消息已经到达并禁止第二次发送。(我们相信这会非常昂贵。)因此，在重试系统中，Orleans最多不能保证一次交货。</p>
+<p><strong>如果您无限期地重试</strong>，<strong>消息最终将到达</strong>，因此提供了至少一次的交货保证。注意，“将最终到达”是运行时需要保证的。即使您继续重试，它也不是免费的。Orleans提供最终交付方式，因为Grains永远不会进入任何永久性失效状态，而失效的Grains最终将在另一个silos中重新激活。</p>
+<p><strong>所以总结一下</strong>：在不重试的系统中，Orleans保证最多发送一次消息。在无限次重试的系统中，Orleans保证至少一次(并且不保证最多一次)。</p>
+<p><strong>注意</strong>： 在里面<a href="http://research.microsoft.com/pubs/210931/Orleans-MSR-TR-2014-41.pdf">Orleans技术报告</a>我们无意中只提到了第二个选项，即自动重试。我们忘记提及默认情况下不重试，Orleans最多提供一次交付。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/implementation/messaging_delivery_guarantees.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

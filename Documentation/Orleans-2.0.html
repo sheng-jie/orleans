@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans 2.0 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans 2.0 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleans20">Orleans2.0</h1>
+
+<p>2.0是Orleans的一个主要版本，其主要目标是使其与.NET标准2.0兼容并跨平台(通过.NET Core)。作为这项工作的一部分，OrleansAPI进行了几次现代化，以使其更符合像ASP.NET这样的技术在当今的配置和托管方式。</p>
+<p>因为它与.NET标准2.0兼容，所以Orleans 2.0可以被针对.NET核心或完整.NET框架的应用程序使用。核心团队对这个版本进行测试的重点是在.NETFramework框架上，以确保现有的应用程序可以轻松地从1.5迁移到2，并具有完全向后兼容性。</p>
+<p>2.0中最显著的变化如下：</p>
+<ul>
+<li>完全转移到利用fluid builder模式api的依赖注入的编程配置。</li>
+</ul>
+<p>基于配置对象和xml文件的旧api是为了向后兼容而保留的，但不会向前移动，将来会被弃用。有关详细信息，请参见<a href="clusters_and_clients/configuration_guide/index.html">配置</a>章节。</p>
+<ul>
+<li>应用程序程序集的显式编程规范，它取代了Orleans运行时在silos或客户端初始化时自动扫描文件夹的功能。</li>
+</ul>
+<p>orleans仍然会在指定的程序集中自动查找相关类型，如grain接口和类、序列化程序等，但它不再尝试加载在文件夹中可以找到的每个程序集。为了向后兼容，提供了用于加载文件夹中所有程序集的可选助手方法：<code>iapplicationpartmanager.addfromapplicationbasedirectory()</code>是的。</p>
+<p>见<a href="clusters_and_clients/configuration_guide/index.html">配置</a>和<a href="resources/Migration/Migration1.5.html">迁移</a>部分了解更多详细信息。</p>
+<ul>
+<li>代码生成的彻底检查。</li>
+</ul>
+<p>虽然代码生成对开发人员来说基本上是不可见的，但是在处理各种可能类型的序列化时，代码生成变得更加健壮。F组件需要特殊处理。见<a href="resources/Migration/Codegen.html">代码生成</a>部分了解更多详细信息。</p>
+<ul>
+<li>创建了<code>Microsoft.Orleans.Core.Abstractions</code>nuget包并将几个类型移动/重构到其中。</li>
+</ul>
+<p>grain代码很可能只需要引用这些抽象，而silo主机和客户端将引用更多的orleans包。我们计划不经常更新这个包。</p>
+<ul>
+<li>添加对作用域服务的支持。</li>
+</ul>
+<p>这意味着每个grain激活都有自己的作用域服务提供者，而orleans注册了一个上下文<code>IGrainActivationContext</code>可以注入<em>瞬变的</em>或<em>范围</em>获取激活特定信息和Grains激活生命周期事件访问权限的服务。这与asp.net core 2.0为每个请求创建作用域上下文的方式类似，但对于orleans，它适用于grain激活的整个生命周期。见<a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection#service-lifetimes-and-registration-options">使用寿命和注册选项</a>在ASP.NET核心文档中获取有关服务生命周期的详细信息。</p>
+<ul>
+<li><p>迁移了要使用的日志基础结构<code>Microsoft.Extensions.Logging</code>(与ASP.NET Core 2.0相同的摘要)。</p>
+</li>
+<li><p>2.0包含了对acid分布式跨Grain事务的测试版支持。</p>
+</li>
+</ul>
+<p>该功能将为原型设计和开发做好准备，并将在2.0版本发布后的某个时间毕业用于生产。见<a href="grains/transactions.html">交易</a>更多细节。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/Orleans-2.0.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

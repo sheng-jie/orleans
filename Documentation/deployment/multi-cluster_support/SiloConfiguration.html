@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Multi-Cluster Silo Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Multi-Cluster Silo Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h2 id="orleanssilos配置">Orleanssilos配置</h2>
+
+<p>为了快速了解，我们在下面的XML语法中显示了所有相关的配置参数(包括可选参数)：</p>
+<pre><code class="lang-html">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;OrleansConfiguration xmlns=&quot;urn:orleans&quot;&gt;
+  &lt;Globals&gt;
+    &lt;MultiClusterNetwork
+      ClusterId=&quot;clusterid&quot;
+      DefaultMultiCluster=&quot;uswest,europewest,useast&quot;
+      BackgroundGossipInterval=&quot;30s&quot;
+      UseGlobalSingleInstanceByDefault=&quot;false&quot;
+      GlobalSingleInstanceRetryInterval=&quot;30s&quot;
+      GlobalSingleInstanceNumberRetries=&quot;3&quot;
+      MaxMultiClusterGateways=&quot;10&quot;&gt;
+         &lt;GossipChannel  Type=&quot;...&quot;  ConnectionString=&quot;...&quot;/&gt;      
+         &lt;GossipChannel  Type=&quot;...&quot;  ConnectionString=&quot;...&quot;/&gt;      
+    &lt;/MultiClusterNetwork&gt;
+    &lt;SystemStore ... ServiceId=&quot;some-guid&quot; .../&gt;
+  &lt;/Globals&gt;
+&lt;/OrleansConfiguration&gt;
+</code></pre><pre><code class="lang-csharp">var silo = new SiloHostBuilder()
+  [...]
+  .Configure&lt;ClusterInfo&gt;(options =&gt;
+  {
+    options.ClusterId = &quot;us3&quot;;
+    options.ServiceId = &quot;myawesomeservice&quot;;
+  })
+  .Configure&lt;MultiClusterOptions&gt;(options =&gt; 
+  {
+    options.HasMultiClusterNetwork = true;
+    options.DefaultMultiCluster = new[] { &quot;us1&quot;, &quot;eu1&quot;, &quot;us2&quot; };
+    options.BackgroundGossipInterval = TimeSpan.FromSeconds(30);
+    options.UseGlobalSingleInstanceByDefault = false;
+    options.GlobalSingleInstanceRetryInterval = TimeSpan.FromSeconds(30);
+    options.GlobalSingleInstanceNumberRetries = 3;
+    options.MaxMultiClusterGateways = 10;
+    options.GossipChannels.Add(&quot;AzureTable&quot;, &quot;DefaultEndpointsProtocol=https;AccountName=usa;AccountKey=...&quot;);
+    options.GossipChannels.Add(&quot;AzureTable&quot;, &quot;DefaultEndpointsProtocol=https;AccountName=europe;AccountKey=...&quot;)
+    [...]
+  })
+  [...]
+</code></pre><p>与往常一样，所有配置设置也可以通过<code>全球配置</code>上课。</p>
+<p>这个<code>服务ID</code>是用于标识此服务的任意ID。所有集群和所有silos必须相同。</p>
+<p>这个<code>多集群网络</code>节是可选的-如果不存在，则禁用此silos的所有多群集支持。</p>
+<p>这个<strong>所需参数</strong> <code>棒状的</code>和<code>八卦频道</code>在<a href="GossipChannels.html">多集群通信</a>是的。</p>
+<p>可选参数<code>MaxMultiClusterGateways系列</code>和<code>背景消息间隔</code>在<a href="GossipChannels.html">多集群通信</a>是的。</p>
+<p>可选参数<code>默认多群集</code>在<a href="MultiClusterConfiguration.html">多群集配置</a>是的。</p>
+<p>可选参数<code>默认为UseGlobalSingleInstances</code>，请<code>GlobalSingleInstanceRetryInterval</code>和<code>GlobalSingleInstanceNumberEntries全局</code>在<a href="GlobalSingleInstance.html">全局单实例Grain</a>是的。</p>
+<h2 id="orleans客户端配置">Orleans客户端配置</h2>
+<p>Orleans客户端不需要额外配置。同一客户端可能无法连接到不同集群中的silos(silos在这种情况下拒绝连接)。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/multi-cluster_support/SiloConfiguration.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

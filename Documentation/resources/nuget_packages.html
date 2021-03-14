@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans NuGet Packages | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans NuGet Packages | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleansnuget软件包">OrleansNuGet软件包</h1>
+
+<h2 id="关键套餐">关键套餐</h2>
+<p>在大多数情况下，您需要使用5个关键的NuGet软件包：</p>
+<h3 id="微软orleans核心抽象httpswwwnugetorgpackagesmicrosoftorleanscoreabstractions"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions/">微软Orleans核心抽象</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Core.Abstractions
+</code></pre><p>包含Orleans.Core.Abstractions.dll，该文件定义开发应用程序代码(grains接口和类)所需的Orleans公共类型。任何Orleans项目都需要直接或间接引用此软件包。将其添加到定义grain接口和类的项目中。</p>
+<h3 id="microsoft-orleans构建时代码生成">Microsoft Orleans构建时代码生成</h3>
+<ul>
+<li><p><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansCodeGenerator.Build/">Microsoft.Orleans.OrleansCodeGenerator.Build</a>。</p>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansCodeGenerator.Build
+</code></pre><p>出现在Orleans1.2.0中。为Grains接口和实施项目提供时间支持。将其添加到您的grain接口和实现项目中，以启用grain引用和序列化器的代码生成。</p>
+</li>
+<li><p><a href="https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild/">Microsoft.Orleans.CodeGenerator.MSBuild</a>。</p>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.CodeGenerator.MSBuild
+</code></pre><p>出现在<a href="https://blogs.msdn.microsoft.com/orleans/2018/10/01/announcing-orleans-2-1/">Orleans2.1.0</a>。替代<code>Microsoft.Orleans.OrleansCodeGenerator.Build</code>包。利用Roslyn进行代码分析，以避免加载应用程序二进制文件并改善对增量构建的支持，这将缩短构建时间。</p>
+</li>
+</ul>
+<h3 id="microsoft-orleans服务器库httpswwwnugetorgpackagesmicrosoftorleansserver"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Server/">Microsoft Orleans服务器库</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Server
+</code></pre><p>一个易于构建和启动silos的元软件包。包括以下软件包：</p>
+<ul>
+<li>微软Orleans核心抽象</li>
+<li>微软Orleans核心</li>
+<li>Microsoft.Orleans.OrleansRuntime</li>
+<li>Microsoft.Orleans.OrleansProviders</li>
+</ul>
+<h3 id="microsoft-orleans客户库httpswwwnugetorgpackagesmicrosoftorleansclient"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Client/">Microsoft Orleans客户库</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Client
+</code></pre><p>一个用于轻松构建和启动Orleans客户(前端)的元软件包。包括以下软件包：</p>
+<ul>
+<li>微软Orleans核心抽象</li>
+<li>微软Orleans核心</li>
+<li>Microsoft.Orleans.OrleansProviders</li>
+</ul>
+<h3 id="微软orleans核心库httpswwwnugetorgpackagesmicrosoftorleanscore"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core/">微软Orleans核心库</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Core
+</code></pre><p>包含应用程序代码和Orleans客户(前端)使用的大多数Orleans公共类型的实现。引用它以构建使用Orleans类型但不处理托管或孤岛的库和客户端应用程序。包含在Microsoft.Orleans.Client和Microsoft.Orleans.Server元软件包中，并且大多数其他软件包直接或间接地对其进行引用。</p>
+<h2 id="代管">代管</h2>
+<h3 id="微软orleans运行时httpswwwnugetorgpackagesmicrosoftorleansorleansruntime"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansRuntime/">微软Orleans运行时</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansRuntime 
+</code></pre><p>用于配置和启动silos的库。在您的silos主机项目中引用它。包含在Microsoft.Orleans.Server元软件包中。</p>
+<h3 id="microsoft-orleans运行时抽象httpswwwnugetorgpackagesmicrosoftorleansruntimeabstractions"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Runtime.Abstractions/">Microsoft Orleans运行时抽象</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Runtime.Abstractions 
+</code></pre><p>包含Microsoft.Orleans.OrleansRuntime中实现的类型的接口和抽象。</p>
+<h3 id="microsoft-orleans在azure云服务上托管httpswwwnugetorgpackagesmicrosoftorleanshostingazurecloudservices"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Hosting.AzureCloudServices/">Microsoft Orleans在Azure云服务上托管</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Hosting.AzureCloudServices
+</code></pre><p>包含用于将silos和Orleans客户端托管为Azure云服务的帮助程序类(工作人员角色和Web角色)。</p>
+<h3 id="microsoft-orleans-service-fabric托管支持httpswwwnugetorgpackagesmicrosoftorleanshostingservicefabric"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Hosting.ServiceFabric/">Microsoft Orleans Service Fabric托管支持</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Hosting.ServiceFabric 
+</code></pre><p>包含用于将silos作为无状态Service Fabric服务托管的帮助程序类。</p>
+<h2 id="集群提供商">集群提供商</h2>
+<p>以下软件包包括用于在各种存储技术中持久存储集群成员数据的插件。</p>
+<h3 id="microsoft-orleans群集提供者用于azure表存储httpswwwnugetorgpackagesmicrosoftorleansclusteringazurestorage"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Clustering.AzureStorage/">Microsoft Orleans群集提供者，用于Azure表存储</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Clustering.AzureStorage
+</code></pre><p>包括用于使用Azure表存储群集成员资格数据的插件。</p>
+<h3 id="microsoft-orleans-adonet提供程序的群集提供程序httpswwwnugetorgpackagesmicrosoftorleansclusteringadonet"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Clustering.AdoNet/">Microsoft Orleans ADO.NET提供程序的群集提供程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Clustering.AdoNet
+</code></pre><p>包括用于使用ADO.NET在支持的数据库之一中存储集群成员资格数据的插件。</p>
+<h3 id="microsoft-orleans领事实用程序httpswwwnugetorgpackagesmicrosoftorleansorleansconsulutils"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansConsulUtils/">Microsoft Orleans领事实用程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansConsulUtils
+</code></pre><p>包括用于使用Consul存储集群成员数据的插件。</p>
+<h3 id="microsoft-orleans-zookeeper实用程序httpswwwnugetorgpackagesmicrosoftorleansorleanszookeeperutils"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansZooKeeperUtils/">Microsoft Orleans ZooKeeper实用程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansZooKeeperUtils
+</code></pre><p>包括用于使用ZooKeeper存储集群成员数据的插件。</p>
+<h3 id="适用于aws-dynamodb的microsoft-orleans群集提供程序httpswwwnugetorgpackagesmicrosoftorleansclusteringdynamodb"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Clustering.DynamoDB/">适用于AWS DynamoDB的Microsoft Orleans群集提供程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Clustering.DynamoDB
+</code></pre><p>包括用于使用AWS DynamoDB存储集群成员数据的插件。</p>
+<h2 id="提醒提供者">提醒提供者</h2>
+<p>以下软件包包括用于在各种存储技术中持久保存提醒的插件。</p>
+<h3 id="microsoft-orleans提醒azure表存储httpswwwnugetorgpackagesmicrosoftorleansremindersazurestorage"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Reminders.AzureStorage/">Microsoft Orleans提醒Azure表存储</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Reminders.AzureStorage
+</code></pre><p>包括用于使用Azure表存储提醒的插件。</p>
+<h3 id="microsoft-orleans提醒adonet提供程序httpswwwnugetorgpackagesmicrosoftorleansremindersadonet"><a href="https://www.nuget.org/packages/Microsoft.Orleans.reminders.AdoNet/">Microsoft Orleans提醒ADO.NET提供程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Reminders.AdoNet
+</code></pre><p>包括用于使用ADO.NET在一个受支持的数据库之一中存储提醒的插件。</p>
+<h3 id="microsoft-orleans提醒提供者适用于aws-dynamodbhttpswwwnugetorgpackagesmicrosoftorleansremindersdynamodb"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Reminders.DynamoDB/">Microsoft Orleans提醒提供者，适用于AWS DynamoDB</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Reminders.DynamoDB
+</code></pre><p>包括用于使用AWS DynamoDB存储提醒的插件。</p>
+<h2 id="grain储存供应商">grain储存供应商</h2>
+<p>以下软件包包括用于在各种存储技术中保持grains状态的插件。</p>
+<h3 id="microsoft-orleans-persistence-azure存储httpswwwnugetorgpackagesmicrosoftorleanspersistenceazurestorage"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AzureStorage/">Microsoft Orleans Persistence Azure存储</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Persistence.AzureStorage
+</code></pre><p>包括用于使用Azure表或Azure Blob存储Grain状态的插件。</p>
+<h3 id="microsoft-orleans-persistence-adonet提供程序httpswwwnugetorgpackagesmicrosoftorleanspersistenceadonet"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet/">Microsoft Orleans Persistence ADO.NET提供程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Persistence.AdoNet
+</code></pre><p>包括用于使用ADO.NET在支持的数据库之一中存储grains状态的插件。</p>
+<h3 id="microsoftorleans持久化dynamodbhttpswwwnugetorgpackagesmicrosoftorleanspersistencedynamodb"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Persistence.DynamoDB/">MicrosoftOrleans持久化DynamoDB</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Persistence.DynamoDB
+</code></pre><p>包括用于使用AWS DynamoDB存储Grain状态的插件。</p>
+<h2 id="流提供者">流提供者</h2>
+<p>以下软件包包括用于传递流事件的插件。</p>
+<h3 id="microsoft-orleans-servicebus实用程序httpswwwnugetorgpackagesmicrosoftorleansorleansservicebus"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansServiceBus/">Microsoft Orleans ServiceBus实用程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansServiceBus
+</code></pre><p>包括Azure事件中心的流提供程序。</p>
+<h3 id="microsoft-orleans流式azure存储httpswwwnugetorgpackagesmicrosoftorleansstreamingazurestorage"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage/">Microsoft Orleans流式Azure存储</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Streaming.AzureStorage
+</code></pre><p>包括Azure队列的流提供程序。</p>
+<h3 id="microsoft-orleans-streaming-aws-sqshttpswwwnugetorgpackagesmicrosoftorleansstreamingsqs"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Streaming.SQS/">Microsoft Orleans Streaming AWS SQS</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Streaming.SQS
+</code></pre><p>包括AWS SQS服务的流提供程序。</p>
+<h3 id="microsoft-orleans-google-cloud-platform实用程序httpswwwnugetorgpackagesmicrosoftorleansorleansgcputils"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansGCPUtils/">Microsoft Orleans Google Cloud Platform实用程序</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansGCPUtils
+</code></pre><p>包括GCP PubSub服务的流提供程序。</p>
+<h2 id="其他套餐">其他套餐</h2>
+<h3 id="微软orleans代码生成httpswwwnugetorgpackagesmicrosoftorleansorleanscodegenerator"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansCodeGenerator/">微软Orleans代码生成</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansCodeGenerator
+</code></pre><p>包括运行时代码生成器。</p>
+<h3 id="微软orleans事件来源httpswwwnugetorgpackagesmicrosoftorleanseventsourcing"><a href="https://www.nuget.org/packages/Microsoft.Orleans.EventSourcing/">微软Orleans事件来源</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.EventSourcing 
+</code></pre><p>包含一组用于创建具有事件源状态的Grains类的基本类型。</p>
+<h2 id="开发与测试">开发与测试</h2>
+<h3 id="微软orleans供应商httpswwwnugetorgpackagesmicrosoftorleansorleansproviders"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansProviders/">微软Orleans供应商</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansProviders
+</code></pre><p>包含一组将数据保留在内存中的持久化和流提供程序。用于测试。通常，不建议将其用于生产，除非可以接受数据丢失以防止孤岛故障。</p>
+<h3 id="microsoft-orleans测试主机库httpswwwnugetorgpackagesmicrosoftorleanstestinghost"><a href="https://www.nuget.org/packages/Microsoft.Orleans.TestingHost/">Microsoft Orleans测试主机库</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.TestingHost
+</code></pre><p>包括用于在测试项目中托管孤岛和客户端的库。</p>
+<h2 id="序列化器">序列化器</h2>
+<h3 id="微软orleans债券序列化器httpswwwnugetorgpackagesmicrosoftorleansserializationbond"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Serialization.Bond/">微软Orleans债券序列化器</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Serialization.Bond
+</code></pre><p>包括对<a href="https://github.com/microsoft/bond">债券序列化器</a>。</p>
+<h3 id="microsoft-orleans-google实用工具httpswwwnugetorgpackagesmicrosoftorleansorleansgoogleutils"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansGoogleUtils/">Microsoft Orleans Google实用工具</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansGoogleUtils
+</code></pre><p>包括Google协议缓冲区序列化程序。</p>
+<h3 id="microsoft-orleans-protobuf-net序列化器httpswwwnugetorgpackagesmicrosoftorleansprotobufnet"><a href="https://www.nuget.org/packages/Microsoft.Orleans.ProtobufNet/">Microsoft Orleans protobuf-net序列化器</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.ProtobufNet
+</code></pre><p>包括协议缓冲区串行器的protobuf-net版本。</p>
+<h2 id="遥测">遥测</h2>
+<h3 id="microsoftorleans遥测消费者-性能计数器httpswwwnugetorgpackagesmicrosoftorleansorleanstelemetryconsumerscounters"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.Counters/">MicrosoftOrleans遥测消费者-性能计数器</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansTelemetryConsumers.Counters
+</code></pre><p>Orleans Telemetry API的Windows Performance Counter实现。</p>
+<h3 id="microsoft-orleans-telemetry使用者-azure应用程序见解httpswwwnugetorgpackagesmicrosoftorleansorleanstelemetryconsumersai"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.AI/">Microsoft Orleans Telemetry使用者-Azure应用程序见解</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansTelemetryConsumers.AI
+</code></pre><p>包括用于Azure Application Insights的遥测使用者。</p>
+<h3 id="微软orleans遥测消费者-newrelichttpswwwnugetorgpackagesmicrosoftorleansorleanstelemetryconsumersnewrelic"><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansTelemetryConsumers.NewRelic/">微软Orleans遥测消费者-NewRelic</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.OrleansTelemetryConsumers.NewRelic
+</code></pre><p>包括NewRelic的遥测用户。</p>
+<h2 id="工具类">工具类</h2>
+<h3 id="microsoft-orleans性能计数器工具httpswwwnugetorgpackagesmicrosoftorleanscountercontrol"><a href="https://www.nuget.org/packages/Microsoft.Orleans.CounterControl/">Microsoft Orleans性能计数器工具</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.CounterControl
+</code></pre><p>包括OrleansCounterControl.exe，该文件为Orleans统计信息和已部署的Grain类注册Windows性能计数器类别。需要海拔。可以作为角色启动任务的一部分在Azure中执行。</p>
+<h2 id="交易次数">交易次数</h2>
+<h3 id="microsoft-orleans-transactions支持httpswwwnugetorgpackagesmicrosoftorleanstransactions"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Transactions/">Microsoft Orleans Transactions支持</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Transactions
+</code></pre><p>包括对跨Grains交易(测试版)的支持。</p>
+<h3 id="microsoft在azure上进行orleans交易httpswwwnugetorgpackagesmicrosoftorleanstransactionsazurestorage"><a href="https://www.nuget.org/packages/Microsoft.Orleans.Transactions.AzureStorage/">Microsoft在Azure上进行Orleans交易</a></h3>
+<pre><code class="lang-powershell">PM&gt; Install-Package Microsoft.Orleans.Transactions.AzureStorage
+</code></pre><p>包括用于在Azure表(beta)中持久保存事务日志的插件。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/resources/nuget_packages.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

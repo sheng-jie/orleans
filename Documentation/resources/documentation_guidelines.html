@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Documentation Guidelines | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Documentation Guidelines | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="文件编制指南">文件编制指南</h1>
+
+<p>Orleans文档是内置的<a href="https://help.github.com/articles/markdown-basics/">降价</a>. 我们使用一些简单的约定来确保整个文档集中的样式一致。</p>
+<p>这些标准正在引入。如果您对这些指导原则有异议，请提出问题或请求。如果发现文档不符合指导原则，请进行修复并提交请求。另外，如果你使用的是Windows10，你可以去商店找到免费的降价编辑器，比如<a href="https://www.microsoft.com/store/apps/9wzdncrdd2p3">这</a></p>
+<h1 id="结构">结构</h1>
+<h2 id="语言">语言</h2>
+<p>文件将遵循美国英语拼写。桌面工具，如<a href="http://markdownpad.com">http://markdownpad.com</a>和<a href="https://code.visualstudio.com/">Visual Studio代码</a>有拼写检查功能。</p>
+<h2 id="段落结构">段落结构</h2>
+<p>每句话都应该写在一行，每行只能写一句话。这使得合并更改更容易，并有助于识别冗长的语言。Markdown中的段落只是一行或多行连续文本，后跟一行或多行空白行。</p>
+<h2 id="标题">标题</h2>
+<p>标题应该用来组织文件。避免使用其他强调功能，如ALLCAPS，<em>斜体字</em>或<strong>大胆的</strong>确定一个新的话题。使用标头不仅更加一致，而且允许链接到标头。</p>
+<h2 id="页脚">页脚</h2>
+<p>在页面的末尾，链接到文档中的下一个逻辑页面很有帮助。如果该页是子节中的最后一页，则链接回索引页是有用的。</p>
+<h1 id="风格">风格</h1>
+<h2 id="代码格式">代码格式</h2>
+<p>示例代码块的格式应为后面紧跟着语言的三个反勾号格式。</p>
+<pre><code class="lang-csharp">    [StorageProvider(ProviderName=&quot;store1&quot;)]
+    public class MyGrain&lt;IMyGrainState&gt;
+    {
+      ...
+    }
+</code></pre><p>将呈现为</p>
+<pre><code class="lang-csharp">[StorageProvider(ProviderName=&quot;store1&quot;)]
+public class MyGrain&lt;IMyGrainState&gt; ...
+{
+  ...
+}
+</code></pre><p>内联代码应该用一个反勾号标记(`).</p>
+<p>其中包括以下参考：</p>
+<ul>
+<li>键入名称，例如。<code>Task&lt;T&gt;</code></li>
+<li>变量名，例如。<code>游戏</code></li>
+<li>名称空间，例如。<code>Orleans。存储。AzureTablesStorage</code></li>
+</ul>
+<p>如果显示输出的文本(例如文本文件内容或控制台输出)，则可以使用后三勾号而不指定语言，也可以缩进内容。例如：</p>
+<pre><code>1 said: Welcome to my team!
+0 said: Thanks!
+1 said: Thanks!
+0 said: Thanks!
+</code></pre><h2 id="文件名和路径">文件名和路径</h2>
+<p>引用文件名、目录/文件夹或URI时，请使用标准斜体来格式化。这可以通过在字符串周围加上一个星号来完成(<code>*</code>)或者一个下划线(<code>_</code>)</p>
+<p>示例：</p>
+<ul>
+<li><em>奥尔勒ansRuntimeInterfaces.dll</em></li>
+<li><em>C： \二进制文件</em></li>
+<li><em>../src/Grains.cs</em></li>
+</ul>
+<h2 id="桌子">桌子</h2>
+<p>标记支撑<a href="https://help.github.com/articles/github-flavored-markdown/#tables">表格数据</a>. 可以使用表来构造数据，以便读者可以轻松地使用这些数据。</p>
+<table>
+<thead>
+<tr>
+<th>后缀</th>
+<th>单位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>女士</td>
+<td>毫秒</td>
+</tr>
+<tr>
+<td>s</td>
+<td>秒</td>
+</tr>
+<tr>
+<td>米</td>
+<td>分钟</td>
+</tr>
+</tbody>
+</table>
+<h2 id="链接">链接</h2>
+<p>引用另一个概念时，请提供指向该概念的链接。页面中的正向和反向引用可以通过页眉进行链接。e、 g.链接回<a href="#结构">结构</a>指向其他文档的链接既可以链接到页面，也可以链接到页面中的子节/页眉。外部链接应作为完整链接公开。例如<a href="https://github.com/dotnet/roslyn">https://github.com/dotnet/roslyn</a></p>
+<h1 id="贡献">贡献</h1>
+<p>Orleans文档作为降价文件管理在托管在上的Git存储库中<a href="https://github.com/dotnet/orleans/tree/gh-pages">gh pages分部的GitHub</a>. 见<a href="https://pages.github.com/">GitHub页面</a>有关如何使用<code>gh页面</code>“项目现场”文件的分支约定。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/resources/documentation_guidelines.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

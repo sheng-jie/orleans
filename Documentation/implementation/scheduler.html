@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Scheduler | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Scheduler | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="排程器">排程器</h1>
+
+<p>Orleans Scheduler是Orleans运行时中的一个组件，负责执行应用程序代码和部分运行时代码，以确保<strong>单线程执行语义</strong>。它实现了自定义的TPL任务计划程序。</p>
+<p>Orleans任务计划程序是一个2级层次的计划程序。在第一层是全球<strong>OrleansTaskScheduler</strong>负责执行系统活动。在第二级，每个Grains活化都有自己的<strong>ActivationTaskScheduler</strong>，它提供了单线程执行语义。</p>
+<h3 id="从高层次上讲执行路径如下">从高层次上讲，执行路径如下：</h3>
+<ol>
+<li>请求到达正确的silos，并找到目标激活。</li>
+<li>请求在其ActivationTaskScheduler上转换为一个任务，排队等待该激活执行。</li>
+<li>通过标准TaskScheduler机制，作为谷类方法执行的一部分而创建的任何后续Task都会自然地排队到同一ActivationTaskScheduler中。</li>
+<li>每个ActivationTaskScheduler都有一个排队等待执行的任务队列。</li>
+<li>Orleans Scheduler具有一组由所有激活调度程序共同使用的工作线程。这些线程定期扫描所有调度程序队列以执行工作。</li>
+<li>线程接受一个队列(每个队列一次由一个线程接受)并开始按FIFO顺序在该队列中执行Tasks。</li>
+<li>一次将一个线程排入队列，然后依次执行Tasks的线程的组合提供了单线程执行语义。</li>
+</ol>
+<h3 id="工作项目">工作项目：</h3>
+<p>Orleans使用工作项的概念来指定调度程序的入口点。最初，每个新请求都作为工作项入队，该工作项仅包装该请求的第一个任务的执行。工作项只是提供有关调度活动的更多上下文信息(调用方，活动的名称，日志记录)，有时还需要代表该调度活动进行一些额外的工作(Invoke工作项中的调用后活动)。当前有以下工作项类型：1.调用工作项–这是最常用的工作项类型。它表示应用程序请求的执行。2.请求/响应工作项–执行系统请求(对SystemTarget的请求)。3. TaskWorkItem –代表排队到最高OrleansTaskScheduler的任务。只是为了方便数据结构而使用它而不是直接任务(下面有更多详细信息)。4. WorkItemGroup –共享同一调度程序的工作项组。用于为每个ActivationTaskScheduler包装任务队列。5. ClosureWorkItem –封装在排队到系统上下文的闭包(任意lambda)周围的包装器。</p>
+<h3 id="调度上下文">调度上下文：</h3>
+<p>调度上下文是一个标签，只是一个不透明的对象，代表调度目标–激活数据，系统目标或系统空上下文。</p>
+<h3 id="高级原则">高级原则：</h3>
+<ol>
+<li><p>任务总是排队到正确的调度程序</p>
+<p>1.1任务永远不会从一个调度程序转移到另一个调度程序。</p>
+<p>1.2我们绝不会代表其他任务创建任务来执行它们。</p>
+<p>1.3工作项包装在Task中(也就是说，为了执行工作项，我们创建了一个Task，其lambda函数将仅运行工作项lambda)。通过始终执行任务，我们确保通过适当的任务计划程序执行任何活动。</p>
+</li>
+<li><p>使用base.TryExecute(而不是RunSynchronously)在计划了队列的调度程序上执行任务</p>
+</li>
+<li><p>ATS，WorkItem组和调度上下文之间存在一对一的映射：</p>
+<p>3.1激活任务计划程序(ATS)是自定义的TPL计划程序。我们保持ATS稀薄，并将所有数据存储在WorkItemGroup中。ATS指向其WorkItemGroup。</p>
+<p>3.2 WorkItem组是激活任务的实际持有人(数据对象)。任务存储在列表中<task>-ATS的所有任务的队列。WorkItemGroup指向其ATS。<p>
+</task></li>
+</ol>
+<h3 id="数据流以及任务和工作项的执行">数据流以及任务和工作项的执行：</h3>
+<ol>
+<li>入口点始终是排队到OrleansTaskScheduler中的工作项。它可以是“调用/请求/响应/关闭工作项”之一。</li>
+<li>根据Task.Start的上下文包装到Task中，并放入正确的ActivationTaskScheduler中。</li>
+<li>排队到其ActivationTaskScheduler的任务被放入WorkItemGroup队列。</li>
+<li>将任务放入WorkItemGroup队列时，WorkItemGroup确保将其显示在OrleansTaskScheduler全局RunQueue中。RunQueue是可运行的WorkItemGroups的全局队列，这些队列中至少有一个Task已排队，因此可以执行。</li>
+<li>辅助线程扫描OrleansTaskScheduler的RunQueue，该队列保存WorkItemGroups并调用WorkItemGroups.Execute。</li>
+<li><p>WorkItemGroups.Execute扫描其任务队列，并通过ActivationTaskScheduler.RunTask(Task)执行它们</p>
+<p>6.1 ActivationTaskScheduler.RunTask(Task)调用base.TryExecute。</p>
+<p>6.2通过TPL直接排队到调度程序的任务将立即执行。</p>
+<p>6.3包装工作项的任务将调用workItem.Execute，它将执行Closure工作项委托。</p>
+</li>
+</ol>
+<h3 id="低层设计工作项目">低层设计–工作项目：</h3>
+<ol>
+<li>在OrleansTaskScheduler中排队工作项是如何在Orleans运行时中开始每个请求的整个执行链的。这是我们进入调度程序的入口。</li>
+<li><p>工作项首先提交给OrleansTaskScheduler(因为这是呈现给系统其余部分的接口)。</p>
+<p>2.1这样只能提交关闭/调用/恢复工作项目。</p>
+<p>2.2无法将TaskWorkItem直接提交给OrleansTaskScheduler(有关处理TaskWorkItem的更多信息，请参见下文)。</p>
+</li>
+<li><p>每个工作项都必须包装到Task中，并通过Task.Start排队到正确的调度程序中。</p>
+<p>3.1这将确保在执行此workItem期间隐式创建的任何Task上正确设置TaskScheduler.Current。</p>
+<p>3.2包装是通过WrapWorkItemAsTask创建一个Task来完成的，该Task将执行工作项，并通过Task.Start(scheduler)将其排队到正确的调度程序中。</p>
+<p>3.3空上下文的工作项将排队到OrleansTaskScheduler。</p>
+<p>3.4非空上下文的工作项将排队到ActivationTaskScheduler中。</p>
+</li>
+</ol>
+<h3 id="低层设计排队任务">低层设计–排队任务：</h3>
+<ol>
+<li><p>任务直接排队到正确的调度程序中</p>
+<p>1.1任务由TPL通过受保护的重写void QueueTask(任务任务)隐式排队。</p>
+<p>1.2具有非空上下文的任务始终排队到ActivationTaskScheduler中</p>
+<p>1.3具有空上下文的任务始终排队到OrleansTaskScheduler</p>
+</li>
+<li><p>将任务排队到ActivationTaskScheduler：</p>
+<p>2.1我们绝不会将一个任务包装在另一个任务中。任务被直接添加到工作项组队列中</p>
+</li>
+<li><p>向OrleansTaskScheduler排队任务：</p>
+<p>3.1当Task排入OrleansTaskScheduler时，我们将其包装到TaskWorkItem中，并将其放入此计划程序的工作项队列中。</p>
+<p>3.2这仅是数据结构问题，无任何内在因素：</p>
+<p>3.3 OrleansTaskScheduler通常保存工作项组以安排它们，因此其RunQueue具有BlockingCollection<iworkitem>。<p>
+<p>3.4由于空上下文的任务也排队到OrleansTaskScheduler中，因此我们重复使用相同的数据结构，因此必须将每个Task包装在TaskWorkItem中。</p>
+<p>3.5我们应该能够通过调整RunQueue数据结构完全摆脱这种包装。这可以稍微简化代码，但通常不重要。而且，将来无论如何我们都应该离开null上下文，所以无论如何这个问题都将消失</p>
+</iworkitem></li>
+</ol>
+<h3 id="内联任务">内联任务：</h3>
+<p>由于任务总是排队在正确的调度程序上，因此从理论上讲，内联任何任务应该总是安全的。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/implementation/scheduler.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

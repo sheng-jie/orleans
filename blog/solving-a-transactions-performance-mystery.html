@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#35299;&#20915;&#20132;&#26131;&#32489;&#25928;&#20043;&#35868; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#35299;&#20915;&#20132;&#26131;&#32489;&#25928;&#20043;&#35868; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="解决交易绩效之谜">解决交易绩效之谜</h1>
+
+<p><a href="https://github.com/ReubenBond">鲁本·邦德</a>2018/12/7上午10:08:58</p>
+<hr>
+<p>到达雷德蒙德并完成强制性的新员工入职培训后，我在Orleans团队的第一项任务就是协助进行一些持续的绩效调查，以确保内部人员可以使用Orleans的交易支持并因此而释放。</p>
+<p>在针对我们的测试集群的压力/负载测试中，我们看到了严重的性能问题和大量事务失败。很大一部分事务一直暂停直到超时。</p>
+<p>我们最初的调查集中在事务管理代码上。也许某个地方陷入僵局。我们采用了分而治之的方法，将内部交易组件替换为残存的变体。这个问题或多或少是孤立的<code>ITransactionalState &lt;T&gt;</code>实施取决于每个方面。事务状态负责加载和修改Grains状态并处理各种事务阶段(开始，准备，中止，提交，确认)，并使用读写器锁在隔离保证内优化多个重叠事务。您可以看到这不是一个小数目的代码，但是事实证明，进一步隔离问题是困难的，原因不仅仅限于以下事实：取出任何一段代码都没有显着改善。</p>
+<p>分析数据对于性能调查至关重要，因此，在请求获得直接访问我们测试集群中机器的权限之后，我们使用以下方法收集了ETW日志：<a href="https://github.com/Microsoft/perfview">PerfView</a>使用与此类似的命令：</p>
+<pre><code>PerfView.exe /acceptEULA /noGui /threadTime /zip /maxCollectSec:30 /dataFile:1.etl collect
+</code></pre><p>分析结果<code>.etl</code>本地文件，查看<a href="http://www.brendangregg.com/flamegraphs.html">火焰图</a>对于堆栈跟踪样本，问题立即显而易见。</p>
+<p><a href="media/2018/12/lock_contention2.png"><img src="media/2018/12/lock_contention_small.png" alt="Flame graph showing lock contention on the .NET Timer Queue"></a></p>
+<p>PerfView使问题的原因显而易见。</p>
+<p>详细信息太小而无法在该视图上阅读，但是通过将鼠标悬停在每个小节上，我们可以看到堆栈框架代表哪种方法。箭头指向CPU等待锁的堆栈帧，在这种情况下，该锁位于全局.NET Timer队列中。向右的平稳期来自于为计时器队列提供服务并触发到期的计时器的线程，这也需要获取锁定。</p>
+<p>我们的负载测试在.NET Framework 4.6.2上运行，因此<code>System.Threading.Timer</code>是使用<a href="https://referencesource.microsoft.com/#mscorlib/system/threading/timer.cs,208ff87939c84fe3">计时器的全局队列(链接列表)</a>由单个锁定对象保护。此队列上的任何操作都必须获得该锁。这是我们已经知道的，Orleans 2.1.0包含一个<a href="https://github.com/dotnet/orleans/pull/4399">PR减轻了此队列上的潜在锁争用</a>用于我们的主要计时器来源(响应超时计时器)。</p>
+<p>交易代码从不使用<code>计时器</code>，那为什么会有问题呢？交易利用<code>Task.Delay</code>用于多种任务，它显示在大多数组件中。这就是为什么我们不能将性能问题缩小到一段特定的代码的原因。<code>Task.Delay</code>使用一个<code>计时器</code>在引擎盖下，创建一个<code>计时器</code>可能会触发一次(如果未取消的话)，并在不再需要时注销它。我们的使用<code>Task.Delay</code>在负载下导致性能下降。</p>
+<p>.NET Core 3.0用户可能从未见过这样的争用，因为.NET Core进行了大量工作以进行改进<code>计时器</code>和<code>Task.Delay</code>性能。看到<a href="https://github.com/dotnet/coreclr/pull/14527">＃14527</a>和<a href="https://github.com/dotnet/coreclr/pull/20302">＃20302</a>。</p>
+<p>我们如何解决这一争执？在确认这里的修复程序实际上可以解决该问题(成功！)之后，我着手实施一个有希望的简单替代品<code>Task.Delay</code>。结果是<a href="https://github.com/dotnet/orleans/pull/5201">在这个公关</a>。其工作原理的要点是它使用单个<code>计时器</code>实例以服务线程本地计时器集合。计时器的点火不需要精确，因此在这些用途中不必担心延迟点火。通过使用线程局部数据结构可很大程度上避免锁争用，但通过使用轻量级Reentrant器可保留安全性<code>互锁比较交换</code>锁。看到<a href="https://github.com/dotnet/orleans/pull/5201">公关</a>更多细节。</p>
+<p>该实施基于之前的工作<a href="https://github.com/dVakulen">@dVakulen</a>在<a href="https://github.com/dotnet/orleans/pull/2060/files#diff-a694ce799337a9585c6bb404e7ca2339">＃2060年</a>并导致吞吐量提高约4倍，而故障率降至零。谜团已揭开。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/blog/solving-a-transactions-performance-mystery.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

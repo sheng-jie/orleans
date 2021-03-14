@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#25490;&#38500;&#37096;&#32626;&#25925;&#38556; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#25490;&#38500;&#37096;&#32626;&#25925;&#38556; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="部署疑难解答">部署疑难解答</h1>
+
+<p>此页面提供了一些常规指南，用于解决部署到azure云服务时出现的任何问题。这些都是非常常见的问题需要注意。一定要检查日志以获取更多信息。</p>
+<h2 id="获取silounavailableexception">获取silounavailableexception</h2>
+<p>在尝试初始化客户端之前，首先检查以确保实际启动了silos。有时，silos需要很长时间才能启动，因此尝试多次初始化客户端是有益的。如果它仍然抛出异常，那么silos可能还有另一个问题。</p>
+<p>检查silos配置并确保silos正确启动。</p>
+<h2 id="常见的连接字符串问题">常见的连接字符串问题</h2>
+<ul>
+<li>在部署到azure时使用本地连接字符串-网站将无法连接</li>
+<li>为silos和前端(web和worker角色)使用不同的连接字符串-网站将无法初始化客户端，因为它无法连接到silos</li>
+</ul>
+<p>可以在azure门户中检查连接字符串配置。如果连接字符串设置不正确，日志可能无法正确显示。</p>
+<h2 id="不正确地修改配置文件">不正确地修改配置文件</h2>
+<p>请确保在serviceDefinition.csdef文件中配置了正确的终结点，否则部署将无法工作。它将给出错误，说明它无法获取端点信息。</p>
+<h2 id="丢失的日志">丢失的日志</h2>
+<p>确保连接字符串设置正确。</p>
+<p>很可能Web角色中的web.config文件或工作角色中的app.config文件修改不正确。这些文件中的不正确版本可能导致部署问题。处理更新时要小心。</p>
+<h2 id="版本问题">版本问题</h2>
+<p>确保解决方案中的每个项目都使用相同版本的Orleans。不这样做会导致工人角色的回收。查看日志以获取更多信息。visual studio在部署历史记录中提供了一些silos启动错误消息。</p>
+<h2 id="角色不断循环">角色不断循环</h2>
+<ul>
+<li>检查所有适当的orleans程序集是否在解决方案中，并将copy local设置为true。</li>
+<li>检查日志以查看初始化时是否存在未处理的异常。</li>
+<li>确保连接字符串正确。</li>
+<li>有关详细信息，请查看azure云服务疑难解答页面。</li>
+</ul>
+<h2 id="如何检查日志">如何检查日志</h2>
+<ul>
+<li>使用visual studio中的云资源管理器导航到存储帐户中相应的存储表或blob。Wadlogstable是查看日志的良好起点。</li>
+<li>您可能只记录了错误。如果还需要信息日志，则需要修改配置以设置日志严重性级别。</li>
+</ul>
+<p>编程配置：</p>
+<ul>
+<li>当创建<code>群集配置</code>对象，设置<code>config.defaults.defaulttracelevel=严重性。信息</code>是的。</li>
+<li>当创建<code>客户端配置</code>对象，设置<code>config.defaulttracelevel=严重性。信息</code>是的。</li>
+</ul>
+<p>声明性配置：</p>
+<ul>
+<li>添加<code>&lt;tracing defaulttracelevel=“info”/&gt;</code>致<code>orleansconfiguration.xml文件</code>和/或<code>客户端配置.xml</code>文件夹。</li>
+</ul>
+<p>在<code>诊断.wadcfgx</code>文件中的web和worker角色，请确保设置<code>scheduledTransferLogLevelFilter</code>中的属性<code>原木</code>元素到<code>问询处</code>，因为这是跟踪筛选的附加层，它定义将哪些跟踪发送到<code>瓦德洛斯泰布尔</code>在azure存储中。</p>
+<p>您可以在《配置指南》中找到有关此的更多信息。</p>
+<h2 id="与aspnet的兼容性">与asp.net的兼容性</h2>
+<p>包含在asp.net中的razor视图引擎使用与orleans相同的代码生成程序集(<code>Microsoft.code分析</code>和<code>微软代码分析.csharp</code>)中。这可能会在运行时出现版本兼容性问题。</p>
+<p>若要解决此问题，请尝试升级<code>Microsoft.codedom.providers.dotnetCompilerPlatform</code>(这是ASP.NET用于包含上述程序集的NuGet包)到最新版本，并设置绑定重定向，如下所示：</p>
+<pre><code class="lang-xml">&lt;dependentAssembly&gt;
+  &lt;assemblyIdentity name=&quot;Microsoft.CodeAnalysis.CSharp&quot; publicKeyToken=&quot;31bf3856ad364e35&quot; culture=&quot;neutral&quot; /&gt;
+  &lt;bindingRedirect oldVersion=&quot;0.0.0.0-2.0.0.0&quot; newVersion=&quot;1.3.1.0&quot; /&gt;
+&lt;/dependentAssembly&gt;
+&lt;dependentAssembly&gt;
+  &lt;assemblyIdentity name=&quot;Microsoft.CodeAnalysis&quot; publicKeyToken=&quot;31bf3856ad364e35&quot; culture=&quot;neutral&quot; /&gt;
+  &lt;bindingRedirect oldVersion=&quot;0.0.0.0-2.0.0.0&quot; newVersion=&quot;1.3.1.0&quot; /&gt;
+&lt;/dependentAssembly&gt;
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/troubleshooting_azure_cloud_services_deployments.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

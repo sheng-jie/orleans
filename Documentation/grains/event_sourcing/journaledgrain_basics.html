@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>JournaledGrain API | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="JournaledGrain API | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="日志训练基础">日志训练基础</h1>
+
+<p>日记grains来源于<code>&lt;journaledgrain&lt;statetype，事件类型&gt;</code>，具有以下类型参数：</p>
+<ul>
+<li>这个<code>状态类型</code>表示Grains的状态。它必须是具有公共默认构造函数的类。</li>
+<li><code>事件类型</code>是可为此Grain引发的所有事件的通用父类型，可以是任何类或接口。</li>
+</ul>
+<p>所有状态和事件对象都应该是可序列化的(因为日志一致性提供程序可能需要持久化它们，和/或在通知消息中发送它们)。</p>
+<p>对于事件是pocos(普通的旧c对象)的Grains，<code>日志记录&lt;statetype&gt;</code>可用作<code>journaledgrain&lt;statetype，对象&gt;</code>是的。</p>
+<h2 id="解读grain状况">解读grain状况</h2>
+<p>要读取当前grains状态并确定其版本号，journaledgrain具有属性</p>
+<pre><code class="lang-csharp">GrainState State { get; }
+int Version { get; }
+</code></pre><p>版本号始终等于已确认事件的总数，状态是将所有已确认事件应用于初始状态的结果。初始状态的版本为0(因为没有应用任何事件)，由grainstate类的默认构造函数确定。</p>
+<p><em>重要：</em>应用程序不应直接修改<code>State</code>是的。这本书仅供阅读。相反，当应用程序想要修改状态时，它必须通过引发事件间接地进行修改。</p>
+<h2 id="引发事件">引发事件</h2>
+<p>通过调用<code>葡萄干</code>功能。例如，一个代表聊天的Grains可以引发<code>后遗症</code>要指示用户提交了帖子，请执行以下操作：</p>
+<pre><code class="lang-csharp">RaiseEvent(new PostedEvent() { Guid = guid, User = user, Text = text, Timestamp = DateTime.UtcNow });
+</code></pre><p>请注意<code>葡萄干</code>启动对存储的写入访问，但不等待写入完成。对于许多应用程序，必须等到我们确认事件已被持久化。在这种情况下，我们总是等待<code>证实人</code>以下内容：</p>
+<pre><code class="lang-csharp">RaiseEvent(new DepositTransaction() { DepositAmount = amount, Description = description });
+await ConfirmEvents();
+</code></pre><p>请注意，即使您没有显式调用<code>证实人</code>，事件最终将得到确认-它在后台自动发生。</p>
+<h2 id="状态转换方法">状态转换方法</h2>
+<p>运行时更新Grains状态<em>自动</em>每当事件发生时。应用程序不需要在引发事件后显式更新状态。但是，应用程序仍然必须提供指定<em>怎样</em>更新状态以响应事件。这可以通过两种方式来实现。</p>
+<p><strong>(一)</strong>grainstate类可以实现一个或多个<code>应用</code>方法论<code>状态类型</code>是的。通常，会创建多个重载，并为事件的运行时类型选择最接近的匹配：</p>
+<pre><code class="lang-csharp">class GrainState {
+
+   Apply(E1 @event)  
+   {
+     // code that updates the state
+   }
+   Apply(E2 @event)  
+   {
+     // code that updates the state
+   }
+}
+</code></pre><p><strong>(二)</strong>grains可以覆盖transitionState函数：</p>
+<pre><code class="lang-csharp">protected override void TransitionState(State state, EventType @event)
+{
+   // code that updates the state
+}
+</code></pre><p>假设转换方法除了修改状态对象之外没有任何副作用，并且应该是确定性的(否则，效果是不可预测的)。如果转换代码抛出异常，则会捕获该异常并将其包含在日志一致性提供程序发出的Orleans日志中的警告中。</p>
+<p>确切地说，运行时调用转换方法取决于所选的日志一致性提供程序及其配置。对于应用程序来说，最好不要依赖于特定的时间，除非日志一致性提供程序特别保证。</p>
+<p>一些提供者，如<code>日志存储</code>日志一致性提供程序，每次加载Grain时重播事件序列。因此，只要事件对象仍然可以从存储中正确反序列化，就有可能从根本上修改grainstate类和转换方法。但对于其他提供商，如<code>状态存储</code>日志一致性提供程序，仅<code>Grain灰岩</code>对象是持久化的，因此开发人员必须确保从存储中读取时可以正确反序列化它。</p>
+<h2 id="引发多个事件">引发多个事件</h2>
+<p>在调用confirmeEvents之前，可以多次调用raiseEvent：</p>
+<pre><code class="lang-csharp">RaiseEvent(e1);
+RaiseEvent(e2);
+await ConfirmEvents();
+</code></pre><p>但是，这可能会导致两次连续的存储访问，并且只在写入第一个事件之后，Grains可能会失败。因此，通常最好使用</p>
+<pre><code class="lang-csharp">RaiseEvents(IEnumerable&lt;EventType&gt; events)
+</code></pre><p>这保证了给定的事件序列以原子方式写入存储器。请注意，由于版本号始终与事件序列的长度匹配，因此引发多个事件会使版本号每次增加一个以上。</p>
+<h2 id="检索事件序列">检索事件序列</h2>
+<p>下面的方法<code>日志记录</code>类允许应用程序检索所有已确认事件序列的指定段：</p>
+<pre><code class="lang-csharp">Task&lt;IReadOnlyList&lt;EventType&gt;&gt; RetrieveConfirmedEvents(int fromVersion, int toVersion)
+</code></pre><p>但是，并非所有日志一致性提供程序都支持它。如果不支持，或者序列的指定段不再可用，则<code>冒号</code>被扔了。</p>
+<p>要检索最新确认版本之前的所有事件，可以调用</p>
+<pre><code class="lang-csharp">await RetrieveConfirmedEvents(0, Version);
+</code></pre><p>只能检索已确认的事件：如果<code>Toversion</code>大于属性的当前值<code>版本</code>是的。</p>
+<p>因为确认的事件永远不会改变，所以即使在存在多个实例或延迟确认的情况下，也不必担心比赛。但是，在这种情况下，有可能<code>版本</code>当await比当时恢复<code>检索确认事件</code>被调用，因此建议将其值保存在变量中。另请参阅关于并发保证的部分。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/event_sourcing/journaledgrain_basics.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

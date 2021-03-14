@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#21521;&#21518;&#20860;&#23481;&#20934;&#21017; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#21521;&#21518;&#20860;&#23481;&#20934;&#21017; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="向后兼容准则">向后兼容准则</h1>
+
+<p>编写向后兼容的代码可能很难测试。</p>
+<h2 id="永远不要更改现有方法的签名">永远不要更改现有方法的签名</h2>
+<p>由于Orleans序列化程序的工作方式，您永远不应该更改现有方法的签名。</p>
+<p>以下示例是正确的：</p>
+<pre><code class="lang-cs">[Version(1)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // First method
+  Task MyMethod(int arg);
+}
+</code></pre><pre><code class="lang-cs">[Version(2)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // Method inherited from V1
+  Task MyMethod(int arg);
+
+  // New method added in V2
+  Task MyNewMethod(int arg, obj o);
+}
+</code></pre><p>这是不正确的：</p>
+<pre><code class="lang-cs">[Version(1)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // First method
+  Task MyMethod(int arg);
+}
+</code></pre><pre><code class="lang-cs">[Version(2)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // Method inherited from V1
+  Task MyMethod(int arg, obj o);
+}
+</code></pre><p><strong>注意</strong>：您不应在代码中进行此更改，因为这是导致非常糟糕的副作用的不良实践的示例。这是一个如果您只重命名参数名会发生什么的示例：假设我们在集群中部署了以下两个接口版本：</p>
+<pre><code class="lang-cs">[Version(1)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // return a - b
+  Task&lt;int&gt; Substract(int a, int b);
+}
+</code></pre><pre><code class="lang-cs">[Version(2)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // return y - x
+  Task&lt;int&gt; Substract(int y, int x);
+}
+</code></pre><p>这种方法似乎是相同的。但是，如果使用V1调用客户端，并且请求由V2激活处理：</p>
+<pre><code class="lang-cs">var grain = client.GetGrain&lt;IMyGrain&gt;(0);
+var result = await grain.Substract(5, 4); // Will return &quot;-1&quot; instead of expected &quot;1&quot;
+</code></pre><p>这是由于内部Orleans序列化程序是如何工作的。</p>
+<h2 id="避免改变现有的方法逻辑">避免改变现有的方法逻辑</h2>
+<p>这看起来很明显，但是在更改现有方法的主体时应该非常小心。除非您正在修复一个bug，否则如果您需要修改代码，最好只添加一个新方法。</p>
+<p>例子：</p>
+<pre><code class="lang-cs">// V1
+public interface MyGrain : IMyGrain
+{
+  // First method
+  Task MyMethod(int arg)
+  {
+    SomeSubRoutine(arg);
+  }
+}
+</code></pre><pre><code class="lang-cs">// V2
+public interface MyGrain : IMyGrain
+{
+  // Method inherited from V1
+  // Do not change the body
+  Task MyMethod(int arg)
+  {
+    SomeSubRoutine(arg);
+  }
+
+  // New method added in V2
+  Task MyNewMethod(int arg)
+  {
+    SomeSubRoutine(arg);
+    NewRoutineAdded(arg);
+  }
+}
+</code></pre><h2 id="不要从grain接口删除方法">不要从grain接口删除方法</h2>
+<p>除非确定不再使用这些方法，否则不应从grain接口中删除方法。如果要删除方法，应该分两步完成：1。部署V2grains，V1方法标记为<code>过时的</code></p>
+<pre><code class="lang-cs">[Version(1)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // First method
+  Task MyMethod(int arg);
+}
+</code></pre><pre><code class="lang-cs">[Version(2)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // Method inherited from V1
+  [Obsolete]
+  Task MyMethod(int arg);
+
+  // New method added in V2
+  Task MyNewMethod(int arg, obj o);
+}
+</code></pre><ol>
+<li>当您确定没有进行V1调用时(实际上V1不再部署在正在运行的集群中)，则在部署V3时删除V1方法
+<code>cs
+[Version(3)]
+public interface IMyGrain : IGrainWithIntegerKey
+{
+  // New method added in V2
+  Task MyNewMethod(int arg, obj o);
+}</code></li>
+</ol>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/grain_versioning/backward_compatibility_guidelines.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Silo Lifecycle | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Silo Lifecycle | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="silos生命周期">silos生命周期</h1>
+
+<h1 id="概述">概述</h1>
+<p>Orleanssilos使用可观察的生命周期(参见<a href="../implementation/orleans_lifecycle.html">Orleans生命周期</a>)用于Orleans系统和应用层组件的有序启动和关闭。</p>
+<h2 id="阶段">阶段</h2>
+<p>Orleanssilos和集群客户端使用一组公共的服务生命周期阶段。</p>
+<pre><code class="lang-csharp">public static class ServiceLifecycleStage
+{
+    public const int First = int.MinValue;
+    public const int RuntimeInitialize = 2000;
+    public const int RuntimeServices = 4000;
+    public const int RuntimeStorageServices = 6000;
+    public const int RuntimeGrainServices = 8000;
+    public const int ApplicationServices = 10000;
+    public const int BecomeActive = Active-1;
+    public const int Active = 20000;
+    public const int Last = int.MaxValue;
+}
+</code></pre><ul>
+<li>服务生命周期的第一阶段</li>
+<li>运行时初始化-初始化运行时环境。silos初始化线程。</li>
+<li>runtime services-启动运行时服务。silo初始化网络和各种代理。</li>
+<li>RuntimeStorageServices-初始化运行时存储。</li>
+<li>runtimegrainservices-启动grains的运行时服务。这包括Grains类型管理、成员服务和Grains目录。</li>
+<li>应用服务–应用层服务。</li>
+<li>变为活动-silos加入群集。</li>
+<li>活动—silos在群集中处于活动状态，并准备接受工作负载。</li>
+<li>服务生命周期的最后阶段</li>
+</ul>
+<h2 id="登录中">登录中</h2>
+<p>由于控制权倒置，参与者加入生命周期，而不是具有一些集中的初始化步骤集的生命周期，因此代码中并不总是清楚启动/关闭顺序是什么。为了帮助解决这个问题，在silos启动之前添加了日志记录，以报告每个阶段参与的组件。这些日志记录在<code>Orleans.Runtime.SiloLifecycleSubject</code>记录员。例如：</p>
+<p><em>信息，orleans.runtime.silolifecyclesubject，“阶段2000:orleans.statistics.perfcounterevironmentstatistics，orleans.runtime.insideruntimeclient，orleans.runtime.silo”</em></p>
+<p><em>信息，orleans.runtime.silolifecyclesubject，“stage 4000:orleans.runtime.silo”</em></p>
+<p><em>信息，orleans.runtime.silolifecyclesubject，“阶段10000:orleans.runtime.versions.grainversionstore，orleans.storage.azuretablegrainstorage-default，orleans.storage.azuretablegrainstorage pubstore”</em></p>
+<p>此外，对每个组件的定时和错误信息也进行了类似的逐级记录。例如：</p>
+<p><em>信息，orleans.runtime.silolifecyclesubject，“生命周期观察者orleans.runtime.insideruntimeclient在2000阶段启动，耗时33毫秒。”</em></p>
+<p><em>信息，orleans.runtime.silolifecyclesubject，“生命周期观察者orleans.statistics.perfcounterenvironmentstatistics开始于2000阶段，耗时17毫秒。”</em></p>
+<h2 id="silos生命周期参与">silos生命周期参与</h2>
+<p>应用程序逻辑可以通过在silos的服务容器中注册参与服务来参与silos的生命周期。服务必须注册为ILifecycleParticipant<isilolifecycle>是的。<p>
+<pre><code class="lang-csharp">public interface ISiloLifecycle : ILifecycleObservable
+{
+}
+
+public interface ILifecycleParticipant&lt;TLifecycleObservable&gt;
+    where TLifecycleObservable : ILifecycleObservable
+{
+    void Participate(TLifecycleObservable lifecycle);
+}
+</code></pre><p>silos启动时，所有参与者(<code>循环参与人&lt;Isilifecycle&gt;</code>)在容器中，将有机会通过调用<code>参与(…)</code>行为。一旦所有人都有机会参与，silos的可观测生命周期将依次开始所有阶段。</p>
+<h2 id="例子">例子</h2>
+<p>随着silo生命周期的引入，用于允许应用程序开发人员在提供程序初始化阶段注入逻辑的引导提供程序不再是必需的，因为应用程序逻辑现在可以在silo启动的任何阶段注入。尽管如此，我们还是添加了一个“启动任务”fa_ade来帮助使用引导提供程序的开发人员进行转换。作为如何开发参与silos生命周期的组件的示例，我们将查看启动任务fa_ade。</p>
+<p>启动任务只需要继承自<code>循环参与人&lt;Isilifecycle&gt;</code>并在指定阶段将应用程序逻辑订阅到silos生命周期。</p>
+<pre><code class="lang-csharp">class StartupTask : ILifecycleParticipant&lt;ISiloLifecycle&gt;
+{
+    private readonly IServiceProvider serviceProvider;
+    private readonly Func&lt;IServiceProvider, CancellationToken, Task&gt; startupTask;
+    private readonly int stage;
+
+    public StartupTask(
+        IServiceProvider serviceProvider,
+        Func&lt;IServiceProvider, CancellationToken, Task&gt; startupTask,
+        int stage)
+    {
+        this.serviceProvider = serviceProvider;
+        this.startupTask = startupTask;
+        this.stage = stage;
+    }
+
+    public void Participate(ISiloLifecycle lifecycle)
+    {
+        lifecycle.Subscribe&lt;StartupTask&gt;(
+            this.stage,
+            cancellation =&gt; this.startupTask(this.serviceProvider, cancellation));
+    }
+}
+</code></pre><p>从上面的实现中，我们可以看到在startuptask的<code>参与(…)</code>调用它订阅配置阶段的silos生命周期，传递应用程序回调，而不是它自己的初始化逻辑。</p>
+<p>需要在给定阶段初始化的组件将提供自己的回调，但模式是相同的。</p>
+<p>现在我们有了一个startuptask，它将确保在配置阶段调用应用程序的钩子，我们需要确保startuptask参与Silo生命周期。为此，我们只需要在容器中注册它。</p>
+<p>我们使用silohost构建器上的扩展函数来实现这一点。</p>
+<pre><code class="lang-csharp">public static ISiloHostBuilder AddStartupTask(
+    this ISiloHostBuilder builder,
+    Func&lt;IServiceProvider, CancellationToken, Task&gt; startupTask,
+    int stage = ServiceLifecycleStage.Active)
+{
+    builder.ConfigureServices(services =&gt;
+        services.AddTransient&lt;ILifecycleParticipant&lt;ISiloLifecycle&gt;&gt;(sp =&gt;
+            new StartupTask(
+                sp,
+                startupTask,
+                stage)));
+    return builder;
+}
+</code></pre><p>通过在silos的服务容器中将startuptask注册为标记接口<code>循环参与人&lt;Isilifecycle&gt;</code>，这向silos发出信号，表明此组件需要参与silos的生命周期。</p>
+</isilolifecycle></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/silo_lifecycle.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans - Thinking Big and Small | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans - Thinking Big and Small | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+
+<p>TL; DR：您不需要数百台服务器即可从Orleans中受益。一把就足够了。</p>
+<p>正如我们刚刚宣布Orleans计划的公开预览(<a href="http://blogs.msdn.com/b/dotnet/archive/2014/04/02/available-now-preview-of-project-orleans-cloud-services-at-scale.aspx">现在可用：“Orleans”项目的预览–大规模的云服务</a>)，// build /上的一些最初的问题和讨论都围绕着Orleans编程模型适合哪种类型的服务。我听到有人说Orleans适用于超大规模系统。尽管从技术上讲是正确的，但他们对我来说并不完整，并迫使我写这篇文章。</p>
+<h2 id="适用范围">适用范围</h2>
+<p>Orleans适用性的一个极端是单机应用。有些人将角色隔离和安全并发视为足够大的好处，因此值得以传递消息为代价。这不是我们在构建Orleans时进行优化的用例，而是一种合法的使用模式，只是在云环境中不是很有趣。</p>
+<p>在另一端，我们发现了跨越数千台服务器的大规模部署。我们在数百台服务器的部署上对Orleans进行了测试，我相信它可以在数千台服务器上正常运行，即使需要进行一些配置调整也是如此。但是，我个人对多少个产品实际上需要跨数千个服务器的单个云服务持怀疑态度，而不是运行多个相互关联的服务，而每个服务实例都部署在数十个或数百个服务器上，因此我个人对此持怀疑态度。</p>
+<h2 id="分布式系统同样的问题无论大小">分布式系统–同样的问题，无论大小</h2>
+<p>当系统从一台服务器移动到多台服务器时，开发人员将面临几乎相同的挑战，而不论其规模是3-5、30-50还是300-500服务器系统。他们现在必须处理计算的分布，它们之间的协调，可伸缩性，容错和重新配置，诊断等。现在，他们正在构建一个分布式系统，这从来都不容易。建立有状态的分布式系统更加困难。</p>
+<p>Orleans旨在通过提供一组易于使用的抽象来帮助构建此类系统，这些抽象可大大简化开发人员的生活并帮助他们避免常见的分布式系统陷阱。分布式运行时旨在执行大多数繁重的工作。在构建不同规模的服务时，开发人员同样可以从Orleans的这些功能中受益，因为Orleans解决的问题实际上是相同的。Grain的抽象简化了有关系统的推理，同时鼓励对状态进行细Grain的划分以实现可伸缩性。虚拟角色功能有助于资源管理和容错。自动传播异常会最大程度地减少错误处理代码，而不会丢失故障。分布式运行时负责服务器故障，消息传递，路由，单线程执行和其他系统级别的保证。您不需要数百台服务器即可开始提高开发人员的工作效率。</p>
+<h2 id="弹性">弹性</h2>
+<p>很难为将来的系统预测负载，而且通常根本不可能。每个初创企业都梦想有一天会被斩首，这对企业来说是福气，也是对系统的诅咒。或者您的CMO可能非常喜欢您的BI数据，以至于她突然想将其存储在5秒内而不是30分钟内。为可能永远不会实现的高负载而建造是昂贵的。Orleans模型通过鼓励以可扩展的方式设计系统来帮助解决弹性问题，这样您就可以从小规模部署开始，并在不更改应用程序代码的情况下从小规模部署或扩大规模(如果需要)。</p>
+<h2 id="底线">底线</h2>
+<p>从单服务器设置转移到分布式系统(无论是2台或3台服务器还是数千台服务器)，您应该都能从Orleans中受益。如果您认为可能需要一天的时间横向扩展或容错，您甚至可以开始与Orleans一起构建单服务器解决方案。这样做的好处是您的代码无需更改。只需添加更多服务器，您的grain就会遍布他们。</p>
+<p>-谢尔盖·拜科夫(Sergey Bykov)</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/resources/orleans_thinking_big_and_small.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

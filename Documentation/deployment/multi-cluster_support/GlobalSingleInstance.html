@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Global-Single-Instance Grains | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Global-Single-Instance Grains | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h3 id="grains协调属性">grains协调属性</h3>
+
+<p>开发人员可以指示集群应该在何时以及如何根据特定的grain类协调其grain目录。这个<code>[全球照明]</code>属性意味着我们需要与在单个全局集群中运行orleans时相同的行为：即将所有调用路由到一个单一的grain激活。相反地，<code>[OneInstancePerCluster]</code>属性指示每个群集可以有自己的独立激活。如果集群之间的通信是不需要的，这是合适的。</p>
+<p>属性放在grain实现上。例如：</p>
+<pre><code class="lang-csharp">using Orleans.MultiCluster;
+
+[GlobalSingleInstance]
+public class MyGlobalGrain : Orleans.Grain, IMyGrain {
+   ...
+}
+
+[OneInstancePerCluster]
+public class MyLocalGrain : Orleans.Grain, IMyGrain {
+   ...
+}
+</code></pre><p>如果grain类没有指定这些属性中的任何一个，则默认为<code>[OneInstancePerCluster]</code>或<code>[全球照明]</code>如果配置参数<code>默认为UseGlobalSingleInstances</code>设置为true。</p>
+<h4 id="全局单实例grain协议">全局单实例Grain协议</h4>
+<p>当访问全局单实例(GSI)grains，并且不知道存在激活时，在激活新实例之前执行特殊GSI激活协议。特别地，请求被发送到当前<a href="MultiClusterConfiguration.html">多群集配置</a>检查他们是否已经激活了这种Grains。如果所有响应均为负，则在此群集中创建新激活。否则，将使用远程激活(并在本地目录中缓存对它的引用)。</p>
+<h4 id="每个集群grain一个实例的协议">每个集群Grain一个实例的协议</h4>
+<p>对于每个集群Grain的一个实例，没有集群间通信。它们只需在每个集群中独立使用标准的orleans机制。在orleans框架本身中，以下grain类用<code>[OneInstancePerCluster]</code>属性：<code>管理grain</code>，请<code>grains数据库成员表</code>，和<code>Grain</code>是的。</p>
+<h4 id="可疑激活">可疑激活</h4>
+<p>如果GSI协议在3次重试(或配置参数指定的任何数目)后没有从所有集群接收到结论性响应<code>GlobalSingleInstanceNumberEntries全局</code>，它乐观地创建了一个新的本地“可疑”激活，支持可用性而不是一致性。</p>
+<p>可疑的激活可能是重复的(因为某些在GSI协议激活期间没有响应的远程集群可能仍然激活了此grains)。因此，每隔30秒(或配置参数指定的任何间隔)定期<code>GlobalSingleInstanceRetryInterval</code>)对于所有可疑的激活，再次运行gsi协议。这确保一旦恢复集群之间的通信，就可以检测并删除重复的激活。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/multi-cluster_support/GlobalSingleInstance.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

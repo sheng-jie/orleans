@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans Streams Programming APIs | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans Streams Programming APIs | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleans流编程api">Orleans流编程API</h1>
+
+<p>应用程序通过与众所周知的API非常相似的API与流交互<a href="https://msdn.microsoft.com/en-us/data/gg577609.aspx">NET中的无功扩展(Rx)</a>. 主要的区别是Orleans河的延伸是<strong>异步</strong>，以使处理在Orleans的分布式和可扩展计算结构中更高效。</p>
+<h3 id="异步流a-nameasync-streama">异步流<a name="Async-Stream"></a></h3>
+<p>应用程序通过使用<em>流提供程序</em>获取流的句柄。您可以阅读有关流提供程序的更多信息<a href="stream_providers.html">在这里</a>，但现在您可以将其视为允许实现者自定义流行为和语义的流工厂：</p>
+<pre><code class="lang-csharp">IStreamProvider streamProvider = base.GetStreamProvider(&quot;SimpleStreamProvider&quot;);
+IAsyncStream&lt;T&gt; stream = streamProvider.GetStream&lt;T&gt;(Guid, &quot;MyStreamNamespace&quot;);
+</code></pre><p>应用程序可以通过调用<code>GetStreamProvider</code>方法<code>Grains</code>类，或者调用<code>GrainClient.GetStreamProvider()</code>方法。</p>
+<p><a href="https://github.com/dotnet/orleans/blob/master/src/Orleans.Core.Abstractions/Streams/Core/IAsyncStream.cs"><strong><code>Orleans.Streams.IAsyncStream&lt;T&gt;</code></strong></a>是一个<strong>虚拟流的逻辑强类型句柄</strong>. 它在精神上类似于OrleansGrains引用。访问<code>GetStreamProvider</code>和<code>GetStream</code>完全是本地的。关于<code>GetStream</code>是一个GUID和一个额外的字符串，我们称之为流命名空间(可以为null)。GUID和名称空间字符串一起构成流标识(与<code>GrainFactory.GetGrain</code>). GUID和命名空间字符串的组合为确定流标识提供了额外的灵活性。就像Grains7可能存在于Grains类型中一样<code>播放器</code>而不同的grains7可能存在于该grains类型中<code>聊天室Grains</code>，流123可能与流命名空间一起存在<code>播放事件流</code>并且不同的流123可以存在于流命名空间中<code>聊天室消息流</code>.</p>
+<h3 id="生产和消费a-nameproducing-and-consuminga">生产和消费<a name="Producing-and-Consuming"></a></h3>
+<p><code>IAsyncStream&lt;T&gt;</code>同时实现<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans.Core.Abstractions/Streams/Core/IAsyncObserver.cs"><strong><code>Orleans.Streams.IAsyncObserver&lt;T&gt;</code></strong></a>和<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans.Core.Abstractions/Streams/Core/IAsyncObservable.cs"><strong><code>Orleans.Streams.IAsyncObservable&lt;T&gt;</code></strong></a>接口。这样，应用程序就可以使用流通过使用<code>Orleans.Streams.IAsyncObserver&lt;T&gt;</code>或者使用<code>Orleans.Streams.IAsyncObservable&lt;T&gt;</code>.</p>
+<pre><code class="lang-csharp">public interface IAsyncObserver&lt;in T&gt;
+{
+    Task OnNextAsync(T item, StreamSequenceToken token = null);
+    Task OnCompletedAsync();
+    Task OnErrorAsync(Exception ex);
+}
+
+public interface IAsyncObservable&lt;T&gt;
+{
+    Task&lt;StreamSubscriptionHandle&lt;T&gt;&gt; SubscribeAsync(IAsyncObserver&lt;T&gt; observer);
+}
+</code></pre><p>为了在流中生成事件，应用程序只调用</p>
+<pre><code class="lang-csharp">await stream.OnNextAsync&lt;T&gt;(event)
+</code></pre><p>为了订阅流，应用程序调用</p>
+<pre><code class="lang-csharp">StreamSubscriptionHandle&lt;T&gt; subscriptionHandle = await stream.SubscribeAsync(IAsyncObserver)
+</code></pre><p>争论<code>订阅同步</code>可以是实现<code>IAsyncObserver服务器</code>接口或lambda函数的组合来处理传入事件。更多选项<code>订阅同步</code>可通过<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans.Core.Abstractions/Streams/Extensions/AsyncObservableExtensions.cs"><strong><code>AsyncObservableExtensions</code></strong></a>班级。<code>订阅同步</code>返回<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans.Core.Abstractions/Streams/Core/StreamSubscriptionHandle.cs"><strong><code>StreamSubscriptionHandle&lt;T&gt;</code></strong></a>，这是一个不透明的句柄，可用于从流中取消订阅(在精神上类似于异步版本的<code>不可分解</code>).</p>
+<pre><code class="lang-csharp">await subscriptionHandle.UnsubscribeAsync()
+</code></pre><p>需要注意的是<strong>订阅是为了Grains，而不是为了激活</strong>. 一旦grain代码被订阅到流中，这个订阅将超过这个激活的生命周期，并且永远保持持久，直到grain代码(可能在不同的激活中)显式取消订阅。这是一个<strong>虚拟流抽象</strong>：不仅所有流在逻辑上始终存在，而且流订阅也是持久的，并且在创建订阅的特定物理激活之后仍然有效。</p>
+<h3 id="多重性a-namemultiplicitya">多重性<a name="Multiplicity"></a></h3>
+<p>一条Orleans河可能有多个生产者和多个消费者。生产者发布的消息将被传递给在消息发布之前订阅流的所有使用者。</p>
+<p>此外，消费者可以多次订阅同一个流。每次订阅它都会返回一个唯一的<code>StreamSubscriptionHandle&lt;T&gt;</code>. 如果一个grain(或客户端)订阅同一个流X次，它将接收相同的事件X次，每次订阅一次。消费者还可以从单个订阅中取消订阅。它可以通过调用以下命令来查找其当前的所有订阅：</p>
+<pre><code class="lang-csharp">IList&lt;StreamSubscriptionHandle&lt;T&gt;&gt; allMyHandles = await IAsyncStream&lt;T&gt;.GetAllSubscriptionHandles()
+</code></pre><h3 id="从故障中恢复a-namerecovering-from-failuresa">从故障中恢复<a name="Recovering-From-Failures"></a></h3>
+<p>如果流的生产者死了(或者它的grains被停用)，它就不需要做什么了。下次这个grain想要生成更多事件时，它可以再次获得流句柄，并以相同的方式生成新的事件。</p>
+<p>消费者的逻辑更复杂一些。正如我们前面所说的，一旦消费者的Grains被订阅到一个流中，这个订阅在该Grains明确取消订阅之前是有效的。如果流的消费者死亡(或其Grain被停用)并且流上生成了一个新事件，消费Grain将被自动重新激活(就像任何普通的OrleansGrains在向其发送消息时自动激活一样)。grain代码现在只需要提供一个<code>IAsyncObserver&lt;T&gt;</code>处理数据。使用者基本上需要重新附加处理逻辑作为<code>非激活异步</code>方法。为此，它可以调用：</p>
+<pre><code class="lang-csharp">StreamSubscriptionHandle&lt;int&gt; newHandle = await subscriptionHandle.ResumeAsync(IAsyncObserver)
+</code></pre><p>消费者使用它第一次订阅时获得的前一个句柄来“继续处理”。注意到<code>恢复异步</code>仅使用的新实例更新现有订阅<code>IAsyncObserver服务器</code>逻辑，并不会改变此使用者已订阅此流的事实。</p>
+<p>消费者如何获得旧的订阅句柄？有两种选择。消费者可能保留了从原始状态返回的句柄<code>订阅同步</code>操作，现在可以使用它。或者，如果消费者没有把手，它可以询问<code>IAsyncStream&lt;T&gt;</code>对于其所有活动订阅句柄，通过调用：</p>
+<pre><code class="lang-csharp">IList&lt;StreamSubscriptionHandle&lt;T&gt;&gt; allMyHandles = await IAsyncStream&lt;T&gt;.GetAllSubscriptionHandles()
+</code></pre><p>消费者现在可以恢复所有这些服务，如果愿意，也可以取消订阅。</p>
+<p><strong>评论：</strong>如果消费Grains实施<code>IAsyncObserver服务器</code>直接接口(<code>公共类MyGrain&lt;T&gt;：Grain，IAsyncObserver&lt;T&gt;</code>)，理论上不应要求重新附加<code>IAsyncObserver服务器</code>因此不需要调用<code>恢复异步</code>. 流式运行时应该能够自动发现grain已经实现了<code>IAsyncObserver服务器</code>只会调用那些<code>IAsyncObserver服务器</code>方法。但是，流式运行时当前不支持此功能，并且grain代码仍然需要显式调用<code>恢复异步</code>即使Grains工具<code>IAsyncObserver服务器</code>直接。支持这一点是我们的待办事项。</p>
+<h3 id="显式和隐式订阅a-nameexplicit-and-implicit-subscriptionsa">显式和隐式订阅<a name="Explicit-and-Implicit-Subscriptions"></a></h3>
+<p>默认情况下，流使用者必须显式订阅流。此订阅通常由grain(或客户端)收到的指示其订阅的外部消息触发。例如，在聊天服务中，当用户加入聊天室时，他的Grains收到<code>加入聊天组</code>带有聊天名称的消息，这将导致用户grain订阅此聊天流。</p>
+<p>此外，OrleansStreams也支持<strong>“隐式订阅”</strong>. 在这个模型中，grains并没有显式地订阅流。这个grain是自动的，隐式的，仅仅基于它的grain标识和<code>隐式itstreamsubscription</code>属性。隐式订阅的主要价值是允许流活动自动触发Grain激活(从而触发订阅)。例如，使用SMS流，如果一个grain要生成一个流，而另一个grain要处理这个流，则生产者需要知道消费Grains的身份，并对其进行grain调用，告诉它订阅流。只有在那之后，它才能开始发送事件。相反，使用隐式订阅，生产者只需开始为流生成事件，消费Grain将自动激活并订阅流。在这种情况下，制作人根本不在乎谁在看事件</p>
+<p>类型的Grains实现类<code>我的grains类型</code>可以声明属性<code>[隐式itstreamsubscription(“MyStreamNamespace”)]</code>. 这将告诉流式运行时，当在标识为GUID XXX和<code>“MyStreamNamespace”</code>命名空间，则应将其传递到标识为XXX类型的grains<code>我的grains类型</code>. 也就是说，运行时映射流<code>&lt;XXX，MyStreamNamespace&gt;</code>消费grain<code>&lt;XXX，我的grains类型&gt;</code>.</p>
+<p>存在<code>隐式itstreamsubscription</code>使流式处理执行阶段自动将此grains订阅到流，并将流事件传递给它。但是，grain代码仍然需要告诉运行时它希望如何处理事件。本质上，它需要附加<code>IAsyncObserver服务器</code>. 因此，当Grains被激活时，里面的Grains代码<code>非激活异步</code>需要调用：</p>
+<pre><code class="lang-csharp">IStreamProvider streamProvider = base.GetStreamProvider(&quot;SimpleStreamProvider&quot;);
+IAsyncStream&lt;T&gt; stream = streamProvider.GetStream&lt;T&gt;(this.GetPrimaryKey(), &quot;MyStreamNamespace&quot;);
+StreamSubscriptionHandle&lt;T&gt; subscription = await stream.SubscribeAsync(IAsyncObserver&lt;T&gt;);
+</code></pre><h3 id="写入订阅逻辑a-namewriting-subscription-logica">写入订阅逻辑<a name="Writing-Subscription-Logic"></a></h3>
+<p>下面是关于如何为各种情况编写订阅逻辑的指南：显式和隐式订阅、可倒带和不可倒带流。显式订阅和隐式订阅的主要区别在于，对于隐式订阅，grain对于每个流命名空间始终只有一个隐式订阅；无法创建多个订阅(没有订阅多重性)，也无法取消订阅，而grain逻辑总是只需要附加处理逻辑。这也意味着对于隐式订阅，永远不需要恢复订阅。另一方面，对于显式订阅，需要恢复订阅，否则如果再次订阅Grain，则会导致订阅多次。</p>
+<p><strong>隐式订阅：</strong></p>
+<p>对于隐式订阅，grain需要订阅以附加处理逻辑。这应该在谷仓里做<code>非激活异步</code>方法。Grains应该简单地执行<code>等待流式订阅同步(下一页…)</code>在它的<code>非激活异步</code>方法。这将导致此特定激活附加<code>OnNext</code>函数来处理该流。grains可以选择指定<code>StreamSequenceToken</code>作为<code>订阅同步</code>，这将导致此隐式订阅从该令牌开始使用。永远不需要隐式订阅来调用<code>恢复异步</code>.</p>
+<pre><code class="lang-csharp">public async override Task OnActivateAsync()
+{
+    var streamProvider = GetStreamProvider(PROVIDER_NAME);
+    var stream = streamProvider.GetStream&lt;string&gt;(this.GetPrimaryKey(), &quot;MyStreamNamespace&quot;);
+    await stream.SubscribeAsync(OnNextAsync)
+}
+</code></pre><p><strong>显式订阅：</strong></p>
+<p>对于显式订阅，grain必须调用<code>订阅同步</code>订阅流。这将创建一个订阅，并附加处理逻辑。显式订阅将一直存在，直到取消订阅该Grain，因此，如果某个Grain被停用并重新激活，则该Grain仍然显式订阅，但不会附加任何处理逻辑。在这种情况下，Grains需要重新附加处理逻辑。为了做到这一点<code>非激活异步</code>，grain首先需要通过调用<code>stream.GetAllSubscriptionHandles()</code>. Grains必须执行<code>恢复异步</code>对于每个句柄，它希望继续处理或取消订阅已处理的任何句柄的异步。grains也可以选择指定<code>StreamSequenceToken</code>作为<code>恢复异步</code>调用，这将导致此显式订阅从该令牌开始使用。</p>
+<pre><code class="lang-csharp">public async override Task OnActivateAsync()
+{
+    var streamProvider = GetStreamProvider(PROVIDER_NAME);
+    var stream = streamProvider.GetStream&lt;string&gt;(this.GetPrimaryKey(), &quot;MyStreamNamespace&quot;);
+    var subscriptionHandles = await stream.GetAllSubscriptionHandles();
+    if (!subscriptionHandles.IsNullOrEmpty())
+        subscriptionHandles.ForEach(async x =&gt; await x.ResumeAsync(OnNextAsync));
+}
+</code></pre><h3 id="流顺序和序列标记a-namestream-order-and-sequence-tokensa">流顺序和序列标记<a name="Stream-Order-and-Sequence-Tokens"></a></h3>
+<p>单个生产者和单个消费者之间的事件传递顺序取决于流提供者。</p>
+<p>对于SMS，生产者通过控制生产者发布事件的方式来显式地控制消费者看到的事件顺序。默认情况下(如果<code>火上浇油</code>SMS provider的选项设置为false)，并且如果生产者等待<code>OnNextAsync</code>访问，事件按先进先出顺序到达。在SMS中，由制作者决定如何处理将由中断表示的传递失败<code>Task</code>由<code>OnNextAsync</code>调用。</p>
+<p>Azure队列流不保证FIFO顺序，因为底层的Azure队列不保证故障情况下的顺序。(它们确实保证了无故障执行中的先进先出顺序。)当生产者将事件生成到Azure队列中时，如果排队操作失败，则由生产者尝试另一次排队，然后再处理潜在的重复消息。在传递端，Orleans流式处理运行时将事件从队列中取出，并尝试将其传递给消费者进行处理。Orleans流式处理运行时仅在成功处理后从队列中删除事件。如果传递或处理失败，则不会从队列中删除事件，稍后将自动重新出现在队列中。流式运行时将再次尝试传递它，因此可能会破坏FIFO顺序。上面的行为符合Azure队列的正常语义。</p>
+<p><strong>应用程序定义的顺序</strong>：要处理上述排序问题，应用程序可以选择指定自己的排序。这是通过<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans.Core.Abstractions/Streams/Core/StreamSubscriptionHandle.cs"><strong><code>StreamSequenceToken</code></strong></a>，它是不透明的<code>i可比较</code>对象，可用于对事件排序。制作者可以通过一个可选的<code>StreamSequenceToken</code>致<code>OnNext</code>调用。这个<code>StreamSequenceToken</code>将一直传递给消费者，并与活动一起交付。这样，应用程序就可以独立于流式运行时推理和重建其顺序。</p>
+<h3 id="可倒流a-namerewindable-streamsa">可倒流<a name="Rewindable-Streams"></a></h3>
+<p>有些流只允许应用程序从最新的时间点开始订阅它们，而其他流则允许“返回时间”。后一种功能取决于底层队列技术和特定的流提供程序。例如，Azure队列只允许使用最新的排队事件，而EventHub允许从任意时间点(直到某个过期时间)重放事件。支持时间倒流的流称为<strong>可倒流</strong>.</p>
+<p>可倒带流的使用者可以传递<code>StreamSequenceToken</code>致<code>订阅同步</code>调用。运行时将从这个开始向它传递事件<code>StreamSequenceToken</code>. 空令牌表示消费者希望接收从最新开始的事件。</p>
+<p>回放流的能力在恢复场景中非常有用。例如，考虑订阅流并定期检查其状态和最新序列标记的Grain。当从失败中恢复时，grain可以从最新的检查点序列令牌重新订阅同一个流，从而恢复而不会丢失自上一个检查点以来生成的任何事件。</p>
+<p><a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansServiceBus/">事件中心提供程序</a>可倒带。你可以找到它的代码<a href="https://github.com/dotnet/orleans/tree/master/src/Azure/Orleans.Streaming.EventHubs">在这里</a>. <a href="https://www.nuget.org/packages/Microsoft.Orleans.OrleansProviders/">短讯服务</a>和<a href="https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage/">Azure队列</a>提供程序不可倒带。</p>
+<h3 id="无状态自动扩展处理a-namestateless-automatically-scaled-out-processinga">无状态自动扩展处理<a name="Stateless-Automatically-Scaled-Out-Processing"></a></h3>
+<p>默认情况下，Orleans流的目标是支持大量相对较小的流，每个流由一个或多个有状态Grain处理。总的来说，所有流的处理在大量规则的(有状态的)grains之间被切分。应用程序代码通过分配流ID和GrainID以及显式订阅来控制这种分片。<strong>目标是分片状态处理</strong>.</p>
+<p>然而，还有一个有趣的场景<strong>自动扩展无状态处理</strong>. 在这个场景中，应用程序有少量的流(甚至一个大的流)，目标是无状态处理。例如，事件的全局流，其中的处理涉及对每个事件进行解码，并可能将其转发到其他流以进行进一步的有状态处理。在Orleans，可以通过<code>无状态工作者</code>Grains。</p>
+<p><strong>无状态自动扩展处理的当前状态：</strong>这还没有实施。从订阅流的尝试<code>无状态工作者</code>grains将导致未定义的行为。<a href="https://github.com/dotnet/orleans/issues/433">我们正在考虑支持这一选择</a>.</p>
+<h3 id="grains和orleans客户a-namegrains-and-orleans-clientsa">Grains和Orleans客户<a name="Grains-and-Orleans-Clients"></a></h3>
+<p>OrleansStreams<strong>在Grains和Orleans的客户中都是一致的</strong>. 也就是说，可以在grain内部和Orleans客户端中使用完全相同的api来生成和消费事件。这大大简化了应用程序逻辑，使得特殊的客户端api(如Grain observer)变得多余。</p>
+<h3 id="全面管理和可靠的流媒体酒吧a-namefully-managed-and-reliable-streaming-pub-suba">全面管理和可靠的流媒体酒吧<a name="Fully-Managed-and-Reliable-Streaming-Pub-Sub"></a></h3>
+<p>为了跟踪流订阅，Orleans使用一个名为<strong>流媒体酒吧</strong>作为流消费者和流生产者的交汇点。Pub-Sub跟踪所有流订阅，持久化它们，并将流消费者与流生产者匹配。</p>
+<p>应用程序可以选择发布订阅数据的存储位置和存储方式。Pub-Sub组件本身被实现为grains(称为<code>公共地下室</code>)，它使用Orleans声明性持久化。<code>公共地下室</code>使用名为的存储提供程序<code>PubSubStore酒店</code>. 与任何Grain一样，您可以为存储提供程序指定实现。对于流式发布订阅，您可以更改<code>PubSubStore酒店</code>在silos构建时，使用思洛主机生成器：</p>
+<p>下面将Pub-Sub配置为将其状态存储在Azure表中。</p>
+<pre><code class="lang-csharp">hostBuilder.AddAzureTableGrainStorage(&quot;PubSubStore&quot;, 
+    options=&gt;{ options.ConnectionString = &quot;Secret&quot;; });
+</code></pre><p>这样，发布订阅数据将持久地存储在Azure表中。对于初始开发，您也可以使用内存存储。除了Pub-Sub之外，Orleans流媒体运行时还从生产者向消费者传递事件，管理分配给活动使用流的所有运行时资源，并透明地从未使用的流中垃圾收集运行时资源。</p>
+<h3 id="配置a-nameconfigurationa">配置<a name="Configuration"></a></h3>
+<p>为了使用流，您需要通过思洛主机或群集客户端构建器启用流提供程序。您可以阅读有关流提供程序的更多信息<a href="stream_providers.html">在这里</a>. 示例流提供程序设置：</p>
+<pre><code class="lang-csharp">hostBuilder.AddSimpleMessageStreamProvider(&quot;SMSProvider&quot;)
+  .AddAzureQueueStreams&lt;AzureQueueDataAdapterV2&gt;(&quot;AzureQueueProvider&quot;,
+    optionsBuilder =&gt; optionsBuilder.Configure(
+      options=&gt;{ options.ConnectionString = &quot;Secret&quot;; }))
+  .AddAzureTableGrainStorage(&quot;PubSubStore&quot;,
+    options=&gt;{ options.ConnectionString = &quot;Secret&quot;; });
+</code></pre><h2 id="下一个">下一个</h2>
+<p><a href="stream_providers.html">Orleans河流供应商</a></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/streaming/streams_programming_APIs.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

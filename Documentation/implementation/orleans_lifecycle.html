@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans Lifecycle | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans Lifecycle | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleans生命周期">Orleans生命周期</h1>
+
+<h2 id="总览">总览</h2>
+<p>Orleans的某些行为非常复杂，因此需要有序地启动和关闭。具有此类行为的某些组件包括Grains，silos和客户。为了解决这个问题，引入了通用组件生命周期模式。此模式包括一个可观察的生命周期，该生命周期负责在组件启动和关闭的各个阶段发出信号，而生命周期观察器则负责在特定阶段执行启动或关闭操作。</p>
+<p>也可以看看<a href="../grains/grain_lifecycle.html">Grains生命周期</a>和<a href="../clusters_and_clients/silo_lifecycle.html">silos生命周期</a>。</p>
+<h2 id="可观察的生命周期">可观察的生命周期</h2>
+<p>需要顺序启动和关闭的组件可以使用可观察的生命周期，该周期可允许其他组件观察LiveCycle并在启动或关闭过程中到达某个阶段时接收通知。</p>
+<pre><code class="lang-csharp">    public interface ILifecycleObservable
+    {
+        IDisposable Subscribe(string observerName, int stage, ILifecycleObserver observer);
+    }
+</code></pre><p>订阅访问在启动或停止时达到阶段时会注册观察者以进行通知。观察者名称用于报告。指示在启动/关闭顺序中的哪一点将通知观察者的阶段。生命周期的每个阶段都是可观察的。当开始和停止到达阶段时，将通知所有观察者。阶段以升序开始，以降序停止。观察者可以通过处置返回的IDisposable物品来退订。</p>
+<h2 id="生命周期观察者">生命周期观察者</h2>
+<p>需要参与另一个组件生命周期的组件需要为其启动和关闭行为提供挂钩，并订阅可观察到的生命周期的特定阶段。</p>
+<pre><code class="lang-csharp">    public interface ILifecycleObserver
+    {
+        Task OnStart(CancellationToken ct);
+        Task OnStop(CancellationToken ct);
+    }
+</code></pre><p><code>OnStart / OnStop</code>在启动/关闭期间达到订阅的阶段时将调用。</p>
+<h2 id="实用工具">实用工具</h2>
+<p>为了方便起见，已经为常见的生命周期使用模式创建了辅助功能。</p>
+<h3 id="扩展名">扩展名</h3>
+<p>存在用于订阅可观察生命周期的扩展功能，这些功能不需要订阅组件实现ILifecycleObserver。而是，这些允许组件传递lambda或在预订阶段调用成员函数。</p>
+<pre><code class="lang-csharp">IDisposable Subscribe(this ILifecycleObservable observable, string observerName, int stage, Func&lt;CancellationToken, Task&gt; onStart, Func&lt;CancellationToken, Task&gt; onStop);
+
+IDisposable Subscribe(this ILifecycleObservable observable, string observerName, int stage, Func&lt;CancellationToken, Task&gt; onStart);
+</code></pre><p>类似的扩展功能允许使用通用类型参数来代替观察者名称。</p>
+<pre><code class="lang-csharp">IDisposable Subscribe&lt;TObserver&gt;(this ILifecycleObservable observable, int stage, Func&lt;CancellationToken, Task&gt; onStart, Func&lt;CancellationToken, Task&gt; onStop);
+
+IDisposable Subscribe&lt;TObserver&gt;(this ILifecycleObservable observable, int stage, Func&lt;CancellationToken, Task&gt; onStart);
+</code></pre><h3 id="生命周期参与">生命周期参与</h3>
+<p>一些可扩展性点需要一种方法来识别哪些组件对参与生命周期感兴趣。为此，引入了生命周期参与者标记接口。探索silos和Grains的生命周期时，将详细介绍如何使用它。</p>
+<pre><code class="lang-csharp">    public interface ILifecycleParticipant&lt;TLifecycleObservable&gt;
+        where TLifecycleObservable : ILifecycleObservable
+    {
+        void Participate(TLifecycleObservable lifecycle);
+    }
+</code></pre><h2 id="例">例</h2>
+<p>根据我们的生命周期测试，以下是在生命周期的多个阶段参与可观察生命周期的组件示例。</p>
+<pre><code class="lang-csharp">enum TestStages
+{
+    Down,
+    Initialize,
+    Configure,
+    Run,
+}
+
+class MultiStageObserver : ILifecycleParticipant&lt;ILifecycleObservable&gt;
+{
+    public Dictionary&lt;TestStages,bool&gt; Started { get; } = new Dictionary&lt;TestStages, bool&gt;();
+    public Dictionary&lt;TestStages, bool&gt; Stopped { get; } = new Dictionary&lt;TestStages, bool&gt;();
+
+    private Task OnStartStage(TestStages stage)
+    {
+        this.Started[stage] = true;
+        return Task.CompletedTask;
+    }
+
+    private Task OnStopStage(TestStages stage)
+    {
+        this.Stopped[stage] = true;
+        return Task.CompletedTask;
+    }
+
+    public void Participate(ILifecycleObservable lifecycle)
+    {
+        lifecycle.Subscribe&lt;MultiStageObserver&gt;((int)TestStages.Down, ct =&gt; OnStartStage(TestStages.Down), ct =&gt; OnStopStage(TestStages.Down));
+        lifecycle.Subscribe&lt;MultiStageObserver&gt;((int)TestStages.Initialize, ct =&gt; OnStartStage(TestStages.Initialize), ct =&gt; OnStopStage(TestStages.Initialize));
+        lifecycle.Subscribe&lt;MultiStageObserver&gt;((int)TestStages.Configure, ct =&gt; OnStartStage(TestStages.Configure), ct =&gt; OnStopStage(TestStages.Configure));
+        lifecycle.Subscribe&lt;MultiStageObserver&gt;((int)TestStages.Run, ct =&gt; OnStartStage(TestStages.Run), ct =&gt; OnStopStage(TestStages.Run));
+    }
+}
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/implementation/orleans_lifecycle.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Activation Garbage Collection | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Activation Garbage Collection | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="激活垃圾回收">激活垃圾回收</h1>
+
+<p>如核心概念部分所述，<em>grains活化</em>是一个grain类的内存实例，由orleans运行时根据需要自动创建，作为grain的临时物理实施例。</p>
+<p>激活垃圾收集(activation gc)是从内存中删除未使用的grains激活的过程。它在概念上类似于.net中的内存垃圾收集工作方式。然而，激活gc只考虑特定grains激活空闲的时间。内存使用率不是一个因素。</p>
+<h2 id="激活gc的工作原理">激活gc的工作原理</h2>
+<p>激活gc的一般过程包括在silos中的orleans运行时定期扫描在配置的时间段(收集期限)内根本没有使用的Grains激活。一旦Grains激活闲置了那么长时间，它就会被停用。停用过程开始于运行时调用grain的<code>OnDeactivateAsync()</code>方法，并通过从silos的所有数据结构中移除对Grain Activation对象的引用来完成，以便.NET GC回收内存。</p>
+<p>因此，在不给应用程序代码增加负担的情况下，只有最近使用的grains激活会保留在内存中，而不再使用的激活会被自动删除，它们使用的系统资源会被运行时回收。</p>
+<p><strong>对于Grains活化收集而言，什么算是“活跃”</strong></p>
+<ul>
+<li>接收方法调用</li>
+<li>收到提醒</li>
+<li>通过流接收事件</li>
+</ul>
+<p><strong>对于Grains活化收集而言，什么不算“活跃”</strong></p>
+<ul>
+<li>执行访问(对另一个Grains或对一个Orleans客户)</li>
+<li>定时器事件</li>
+<li>不涉及orleans框架的任意io操作或外部调用</li>
+</ul>
+<p><strong>收款年龄限制</strong></p>
+<p>在这段时间之后，闲置Grains的激活会受到激活GC的影响，这段时间称为收集期限限制。默认的收集期限为2小时，但可以全局更改，也可以针对单个Grains类更改。</p>
+<h2 id="显式控制激活垃圾回收">显式控制激活垃圾回收</h2>
+<h3 id="延迟激活gc">延迟激活gc</h3>
+<p>Grains激活可以通过调用<code>this.delaydeactivation()</code>方法：</p>
+<pre><code class="lang-csharp">protected void DelayDeactivation(TimeSpan timeSpan)
+</code></pre><p>此调用将确保此激活至少在指定的持续时间内不被停用。它的优先级高于配置中指定的激活垃圾回收设置，但不会取消这些设置。因此，此调用为<strong>将停用延迟到激活垃圾收集设置中指定的时间之外</strong>是的。此调用不能用于加速激活垃圾收集。</p>
+<p>积极的<code>时间跨度</code>值表示“在该时间段内阻止此激活的GC”。</p>
+<p>否定的<code>时间跨度</code>值表示“取消<code>Task.Delay</code>调用并使此激活行为基于常规激活垃圾收集设置”。</p>
+<p><strong>情节：</strong></p>
+<p>1)激活垃圾收集设置指定10分钟的期限，Grains正在调用<code>Task.Delay(TimeSpan.FromMinutes(20))</code>，它将导致至少20分钟内无法收集此激活。</p>
+<p>2)激活垃圾收集设置指定10分钟的期限，Grains正在调用<code>Task.Delay(TimeSpan.FromMinutes(5))</code>，如果没有额外访问，则激活将在10分钟后收集。</p>
+<p>3)激活垃圾收集设置指定10分钟的期限，Grains正在调用<code>Task.Delay(TimeSpan.FromMinutes(5))</code>，7分钟后，如果没有额外的调用，则会在17分钟后从时间0开始收集激活。</p>
+<p>4)激活垃圾收集设置指定10分钟的期限，Grains正在调用<code>Task.Delay(TimeSpan.FromMinutes(20))</code>，7分钟后，此Grains上还有另一个调用，如果没有额外的调用，则将在从时间0开始的20分钟后收集激活。</p>
+<p>请注意<code>Task.Delay</code>无法100%保证在指定的时间段到期之前不会停用Grains激活。有些失效案例可能导致Grains过早失活。也就是说<code>Task.Delay</code> <strong>不能用作永久“固定”内存中的grains激活或固定到特定silos的方法</strong>是的。<code>Task.Delay</code>这仅仅是一种优化机制，可以帮助降低Grains随着时间的推移被停用和重新激活的总成本，如果这很重要的话。在大多数情况下，不需要使用<code>Task.Delay</code>完全。</p>
+<h3 id="加速活化气相色谱">加速活化气相色谱</h3>
+<p>Grains激活还可以通过调用<code>这个。停用空闲()</code>方法：</p>
+<pre><code class="lang-csharp">protected void DeactivateOnIdle()
+</code></pre><p>如果此时不处理任何消息，则认为Grains激活处于空闲状态。如果你调用<code>停用空闲</code>当Grains正在处理消息时，一旦当前消息的处理完成，它将被停用。</p>
+<p>如果有任何请求排队等待Grains，它们将被转发到下一个激活。</p>
+<p><code>停用空闲</code>优先于配置或<code>Task.Delay</code>是的。请注意，此设置仅适用于调用它的grains激活，而不适用于此类型的其他grains激活。</p>
+<h2 id="配置">配置</h2>
+<p>可以使用<code>GrainCollection选项</code>选项：</p>
+<pre><code class="lang-csharp">mySiloHostBuilder.Configure&lt;GrainCollectionOptions&gt;(options =&gt;
+{
+  // Set the value of CollectionAge to 10 minutes for all grain
+  options.CollectionAge = TimeSpan.FromMinutes(10);
+  // Override the value of CollectionAge to 5 minutes for MyGrainImplementation
+  options.ClassSpecificCollectionAge[typeof(MyGrainImplementation).FullName] = TimeSpan.FromMinutes(5);
+})
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/configuration_guide/activation_garbage_collection.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

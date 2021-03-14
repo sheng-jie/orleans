@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>External Tasks and Grains | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="External Tasks and Grains | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="外部任务和grain">外部任务和grain</h1>
+
+<p>根据设计，任何从子级代码中产生的子任务(例如，通过使用await要么<code>继续</code>要么<code>Task.Factory.StartNew</code>)将在每次激活时分派<a href="https://msdn.microsoft.com/en-us/library/dd997402(v=vs.110).aspx">TPL任务计划程序</a>作为父任务，因此继承了与其余Grains代码相同的单线程执行模型。这是单线程执行的主要要点<a href="http://dotnet.github.io/orleans/Tutorials/Concurrency">基于Grains转向的并发</a>。</p>
+<p>在某些情况下，Grains代码可能需要“突破”Orleans任务调度模型并“做一些特别的事情”，例如明确指向<code>Task</code>到其他任务计划程序或使用.NET线程池。这种情况的一个例子是当Grains代码必须执行同步的远程阻塞调用(例如远程IO)时。在Grains环境中执行此操作将阻塞Grains以及Orleans线程之一，因此永远不应该这样做。相反，grain代码可以在线程池线程上执行这段阻塞代码并加入(await)该执行的完成，并根据具体情况进行。我们希望，从“Orleans”调度程序中转义将是非常高级且很少需要的使用场景，超出了“正常”使用模式。</p>
+<h3 id="基于任务的api">基于任务的API：</h3>
+<p>1)await，<code>Task.Factory.StartNew</code>(见下文)，<code>Task.ContinuewWith</code>，<code>Task.WhenAny</code>，<code>Task.WhenAll</code>，<code>Task.Delay</code>都尊重当前的任务计划程序。这意味着以默认方式使用它们而不传递其他TaskScheduler会使它们在Grains上下文中执行。</p>
+<p>2)两者Task.Run<code>和</code>endMethod<code>的代表</code>Task.Factory.FromAsync<code>不要尊重当前的任务计划程序。他们都使用</code>TaskScheduler.Default<code>Scheduler，它是.NET线程池任务Scheduler。因此，里面的代码Task.Run</code>和<code>endMethod</code>将始终在OrleansGrains的单线程执行模型之外的.NET线程池上运行，<a href="http://blogs.msdn.com/b/pfxteam/archive/2011/10/24/10229468.aspx">如这里详细</a>。但是，<code>等待Task.Run</code>要么<code>等待Task.Factory.FromAsync</code>将在创建任务时在调度程序下运行，这就是Grains调度程序。</p>
+<p>3)<code>configureAwait(false)</code>是用于逃避当前任务计划程序的显式API。这将导致在等待的任务之后在<code>TaskScheduler.Default</code>调度程序，它是.NET线程池，因此将中断Orleans grain的单线程执行。你一般应该<strong>永远不要使用<code>ConfigureAwait(false)</code>直接在Grains代码中。</strong></p>
+<p>4)带签名的方法<code>异步无效</code>不应与Grains一起使用。它们旨在用于图形用户接口事件处理程序。</p>
+<h4 id="taskfactorystartnew和异步委托">Task.Factory.StartNew和异步委托</h4>
+<p>在任何C＃程序中调度任务的通常建议是使用Task.Run<code>有利于</code>Task.Factory.StartNew<code>。实际上，谷歌快速搜索使用</code>Task.Factory.StartNew()<code>会建议[那是危险的](https://blog.stephencleary.com/2013/08/startnew-is-dangerous.html)和[那应该永远喜欢Task.Run</code>](<a href="https://devblogs.microsoft.com/pfxteam/task-run-vs-task-factory-startnew/)。但是，如果我们希望保留在Orleans单线程执行模型中，那么我们需要使用它，那么我们如何正确地执行它呢？使用时的“危险”`Task.Factory.StartNew()`是它本身不支持异步委托。这意味着这可能是一个错误：`var">https://devblogs.microsoft.com/pfxteam/task-run-vs-task-factory-startnew/)。但是，如果我们希望保留在Orleans单线程执行模型中，那么我们需要使用它，那么我们如何正确地执行它呢？使用时的“危险”`Task.Factory.StartNew()`是它本身不支持异步委托。这意味着这可能是一个错误：`var</a> notIntendedTask = Task.Factory.StartNew(SomeDelegateAsync)<code>。</code>notIntendedTask<code>是*不*在以下时间完成的任务</code>SomeDelegateAsync<code>做。相反，应该*总是*解开返回的任务：</code>var task = Task.Factory.StartNew(SomeDelegateAsync).Unwrap()`。</p>
+<h3 id="例">例：</h3>
+<p>以下是示例代码，演示了如何使用<code>TaskScheduler.Current</code>，Task.Run`以及一个特殊的自定义调度程序，可从OrleanGrains上下文以及如何返回到该上下文中逃脱。</p>
+<pre><code class="lang-csharp">   public async Task MyGrainMethod()
+   {
+        // Grab the Orleans task scheduler
+        var orleansTs = TaskScheduler.Current;
+        await TaskDelay(10000);
+        // Current task scheduler did not change, the code after await is still running in the same task scheduler.
+        Assert.AreEqual(orleansTs, TaskScheduler.Current);
+
+        Task t1 = Task.Run( () =&gt;
+        {
+             // This code runs on the thread pool scheduler, not on Orleans task scheduler
+             Assert.AreNotEqual(orleansTS, TaskScheduler.Current);
+             Assert.AreEqual(TaskScheduler.Default, TaskScheduler.Current);
+        } );
+        await t1;
+        // We are back to the Orleans task scheduler. 
+        // Since await was executed in Orleans task scheduler context, we are now back to that context.
+        Assert.AreEqual(orleansTS, TaskScheduler.Current);
+
+        // Example of using ask.Factory.StartNew with a custom scheduler to escape from the Orleans scheduler
+        Task t2 = Task.Factory.StartNew(() =&gt;
+        {
+             // This code runs on the MyCustomSchedulerThatIWroteMyself scheduler, not on the Orleans task scheduler
+             Assert.AreNotEqual(orleansTS, TaskScheduler.Current);
+             Assert.AreEqual(MyCustomSchedulerThatIWroteMyself, TaskScheduler.Current);
+        },
+        CancellationToken.None, TaskCreationOptions.None,
+        scheduler: MyCustomSchedulerThatIWroteMyself);
+        await t2;
+        // We are back to Orleans task scheduler.
+        Assert.AreEqual(orleansTS, TaskScheduler.Current);
+   }
+</code></pre><h3 id="高级示例-从运行在线程池上的代码进行grain调用">高级示例-从运行在线程池上的代码进行Grain调用</h3>
+<p>甚至更高级的方案是一段Grains代码，需要“突破”Orleans任务调度模型并在线程池(或其他非Orleans上下文)上运行，但仍需要调用另一个Grains。如果您尝试进行一次Grains调用但不在Orleans上下文中，则会收到一个异常，指出您正在“尝试从silos而不是从Grains内部而不是系统目标内部发送消息(RuntimeContext不是</p>
+<p>设置为SchedulingContext)”。</p>
+<pre><code class="lang-csharp">   public async Task MyGrainMethod()
+   {
+        // Grab the Orleans task scheduler
+        var orleansTs = TaskScheduler.Current;
+        Task&lt;int&gt; t1 = Task.Run(async () =&gt;
+        {
+             // This code runs on the thread pool scheduler, not on Orleans task scheduler
+             Assert.AreNotEqual(orleansTS, TaskScheduler.Current);
+             // You can do whatever you need to do here. Now let&#39;s say you need to make a grain call.
+             Task&lt;Task&lt;int&gt;&gt; t2 = Task.Factory.StartNew(() =&gt;
+             {
+                // This code runs on the Orleans task scheduler since we specified the scheduler: orleansTs.
+                Assert.AreEqual(orleansTS, TaskScheduler.Current);
+                return GrainFactory.GetGrain&lt;IFooGrain&gt;(0).MakeGrainCall();
+             }, CancellationToken.None, TaskCreationOptions.None, scheduler: orleansTs);
+
+             int res = await (await t2); // double await, unrelated to Orleans, just part of TPL APIs.
+             // This code runs back on the thread pool scheduler, not on the Orleans task scheduler
+             Assert.AreNotEqual(orleansTS, TaskScheduler.Current);
+             return res;
+        } );
+
+        int result = await t1;
+        // We are back to the Orleans task scheduler.
+        // Since await was executed in the Orleans task scheduler context, we are now back to that context.
+        Assert.AreEqual(orleansTS, TaskScheduler.Current);
+   }
+</code></pre><h3 id="下面的代码演示了如何从在grains内部但不在grains上下文中运行的一段代码进行grains调用">下面的代码演示了如何从在Grains内部但不在Grains上下文中运行的一段代码进行Grains调用。</h3>
+<p>与图书馆打交道<code>您的代码正在使用的某些外部库可能正在使用</code>ConfigureAwait(false)内部。<code>实际上，在.NET中使用它是一种正确的好习惯</code> <a href="https://msdn.microsoft.com/en-us/magazine/jj991977.aspx">ConfigureAwait(false)</a>在实现通用库时。在Orleans，这不是问题。<code>只要调用库方法的grain中的代码正在等待常规的库调用</code>等待，粒码正确。<code>结果将完全符合要求-库代码将在Default Scheduler上继续运行(碰巧是</code>ThreadPoolTask​​Scheduler</p>
+<p>但这不能保证继续操作一定会在ThreadPool线程上运行，因为继续操作通常在上一个线程中内联)，而grain代码将在Orleans调度程序上运行。<code>另一个经常问到的问题是，是否需要使用Task.Run</code>-也就是说，是否需要将库代码显式卸载到ThreadPool(用于Grains代码)<code>Task.Run(()=&gt; myLibrary.FooAsync()))。答案是否定的。除了库代码进行阻塞同步调用的情况外，无需将任何代码卸载到ThreadPool。通常，任何编写正确且正确的.NET异步库(返回的方法</code>Task<code>并以</code>异步`后缀)请勿拨调用。因此，除非您怀疑异步库有故障或故意使用同步阻塞库，否则无需将任何内容卸载到ThreadPool。</p>
+<h2 id="摘要">摘要</h2>
+<table>
+<thead>
+<tr>
+<th>你想做什么？</th>
+<th>怎么做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>在.NET线程池线程上运行后台工作。不允许使用任何Grains代码或Grains调用。</td>
+<td>Task.Run`</td>
+</tr>
+<tr>
+<td>grains接口调用</td>
+<td>方法返回类型=<code>Task</code>或<code>Task&lt;T&gt;</code></td>
+</tr>
+<tr>
+<td>使用基于Orleans回合的并发保证(<a href="#Task.Factory.StartNew和异步委托">往上看</a>)。</td>
+<td><code>Task.Factory.StartNew(WorkerAsync).Unwrap()</code></td>
+</tr>
+<tr>
+<td>使用基于Orleans回合的并发保证，可以从Grains代码运行同步工作者任务。</td>
+<td><code>Task.Factory.StartNew(WorkerSync)</code></td>
+</tr>
+<tr>
+<td>执行工作项的超时</td>
+<td><code>Task.Delay</code>+<code>Task.WhenAny</code></td>
+</tr>
+<tr>
+<td>用于async/await</td>
+<td>普通的.NET Task-Async编程模型。支持和推荐</td>
+</tr>
+<tr>
+<td><code>ConfigureAwait(false)</code></td>
+<td>请勿使用内部Grains代码。仅在库内部允许。</td>
+</tr>
+<tr>
+<td>调用异步库</td>
+<td>await图书馆调用</td>
+</tr>
+</tbody>
+</table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/external_tasks_and_grains.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

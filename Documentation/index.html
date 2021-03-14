@@ -1,0 +1,251 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Introduction | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Introduction | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h3 id="orleans是一个用于构建健壮可伸缩的分布式应用程序的跨平台框架">Orleans是一个用于构建健壮、可伸缩的分布式应用程序的跨平台框架</h3>
+
+<p>Orleans建立在.NET开发人员生产力的基础上，并将其带入了分布式应用程序的世界，例如云服务。 Orleans可从单个本地服务器扩展到云中全局分布的高可用性应用程序。</p>
+<p>Orleans采用了对象，接口，async/await和try/catch等熟悉的概念，并将其扩展到多服务器环境。这样，它可以帮助具有单服务器应用程序经验的开发人员过渡到构建弹性，可扩展的云服务和其他分布式应用程序。因此，Orleans通常被称为“分布式.NET”。</p>
+<p>它是由<a href="http://research.microsoft.com/projects/orleans/">Microsoft Research</a> 创建的，并介绍了<a href="http://research.microsoft.com/apps/pubs/default.aspx?id=210931">Virtual Actor Model</a>作为一种新方法来构建面向云时代的新一代分布式系统。 Orleans的核心贡献是它的编程模型，它在不限制功能，以及对开发人员施加繁重约束的情况下，降低了高并发分布式系统固有的复杂性。</p>
+<h2 id="grains">Grains</h2>
+<p><img src="../Images/grain_formulation.svg" alt="A grain is composed of a stable identity, behavior, and state"></p>
+<p>任何Orleans应用程序的基本构建块都是<em>grain</em>. grains是由用户定义的身份、行为和状态组成的实体。grains标识是用户定义的键，使grains始终可供调用。Grains可以通过强类型通信接口(contract)被其他Grains或Web前端等外部客户端调用。每个grains都是实现一个或多个这些接口的类的一个实例。</p>
+<p>Grains可以具有挥发性和/或持久化状态，可以存储在任何存储系统中。因此，grains隐式地划分应用程序状态，从而实现自动可伸缩性并简化故障恢复。当Grain处于活动状态时，Grain状态被保存在内存中，从而降低了延迟和数据存储的负载。</p>
+<p align="center">
+  <img src="../Images/managed_lifecycle.svg" alt="">
+</p>
+
+<p>grains的实例化由Orleans运行时根据需要自动执行。暂时不使用的grains会自动从内存中删除以释放资源。这是有可能的，因为它们具有稳定的身份，允许调用grains，不管它们是否已经加载到内存中。这还允许透明地从失败中恢复，因为调用方不需要知道在任何时间点在哪个服务器上实例化了一个grain。Grains有一个受管理的生命周期，Orleans运行时负责激活/停用Grains，并根据需要存储/定位Grains。这允许开发人员编写代码，就好像所有的grains总是在内存中一样。</p>
+<p>总的来说，稳定的标识、有状态性和可管理的生命周期是构建在Orleans之上的系统可伸缩、高性能的核心因素，&amp;可靠，不必强迫开发人员编写复杂的分布式系统代码。</p>
+<h3 id="示例物联网云后端">示例：物联网云后端</h3>
+<p>考虑一个云后端<a href="https://en.wikipedia.org/wiki/Internet_of_things">物联网</a>系统。此应用程序需要处理传入的设备数据、筛选、聚合和处理这些信息，并允许向设备发送命令。在Orleans，人们很自然地用一种Grains来模拟每一种设备，这种Grains变成了<em>数码双胞胎</em>它所对应的物理设备。这些grains将最新的设备数据保存在内存中，这样就可以快速地查询和处理它们，而不需要直接与物理设备通信。通过观察来自设备的时间序列数据流，grains可以检测条件的变化，例如测量值超过阈值，并触发一个动作。</p>
+<p>一个简单的恒温器可以建模如下：</p>
+<pre><code class="lang-C#">public interface IThermostat : IGrainWithStringKey
+{
+  Task&lt;List&lt;Command&gt;&gt; OnUpdate(ThermostatStatus update);
+}
+</code></pre><p>从Web前端从恒温器到达的事件可以通过调用<code>OnUpdate</code>方法，它可以选择将命令返回给设备。</p>
+<pre><code class="lang-C#">var thermostat = client.GetGrain&lt;IThermostat&gt;(id);
+return await thermostat.OnUpdate(update);
+</code></pre><p>相同的恒温器grains可实现单独的接口，以便控制系统与：</p>
+<pre><code class="lang-C#">public interface IThermostatControl : IGrainWithStringKey
+{
+  Task&lt;ThermostatStatus&gt; GetStatus();
+
+  Task UpdateConfiguration(ThermostatConfiguration config);
+}
+</code></pre><p>这两个接口(<code>IThermostat</code>和<code>IThermostatControl</code>)由单个实现类实现：</p>
+<pre><code class="lang-C#">public class ThermostatGrain : Grain, IThermostat, IThermostatControl
+{
+  private ThermostatStatus _status;
+  private List&lt;Command&gt; _commands;
+
+  public Task&lt;List&lt;Command&gt;&gt; OnUpdate(ThermostatStatus status)
+  {
+    _status = status;
+    var result = _commands;
+    _commands = new List&lt;Command&gt;();
+    return Task.FromResult(result);
+  }
+
+  public Task&lt;ThermostatStatus&gt; GetStatus() =&gt; Task.FromResult(_status);
+
+  public Task UpdateConfiguration(ThermostatConfiguration config)
+  {
+    _commands.Add(new ConfigUpdateCommand(config));
+    return Task.CompletedTask;
+  }
+}
+</code></pre><p>上面的Grains类不会保持其状态。<a href="grains/grain_persistence/index.html">文档</a>中提供了演示状态持久化的更彻底的示例。</p>
+<h2 id="orleans运行时">Orleans运行时</h2>
+<p>Orleans运行时为应用程序运行时的主要组件是<em>silos</em>，负责寄存Grains。通常，一组silos作为集群运行，以实现可伸缩性和容错性。当作为集群运行时，silos相互协调以分配工作、检测并从故障中恢复。运行时使集群中托管的grains能够像在单个进程中一样相互通信。</p>
+<p>除了核心编程模型之外，silos还为grains提供了一组运行时服务，例如计时器、提醒(persistent timers)、持久化、事务、流等。见<a href="#特征">特色部分</a>下面是更多细节。</p>
+<p>Web前端和其他外部客户端使用客户端库调用集群中的grains，该库自动管理网络通信。为了简单起见，客户端也可以与silos在同一进程中共同托管。</p>
+<p>Orleans与.NET Standard 2.0及更高版本兼容，运行在Windows、Linux和macOS上，采用完整的.NET Framework或.NET核心。</p>
+<h2 id="特征">特征</h2>
+<h3 id="持久化">持久化</h3>
+<p>Orleans提供了一个简单的持久化模型，确保在处理请求之前，状态对grain是可用的，并且保持一致性。Grains可以有多个命名的持久化数据对象，例如，一个名为“profile”的用户概要文件，一个名为“inventory”的存储。此状态可以存储在任何存储系统中。例如，配置文件数据可以存储在一个数据库中，而库存存储在另一个数据库中。当一个grain正在运行时，这个状态被保存在内存中，这样就可以在不访问存储器的情况下处理读请求。当grains更新其状态时<code>state.WriteStateAsync()</code>call确保备份存储的持久化和一致性得到更新。有关详细信息，请参见<a href="grains/grain_persistence/index.html">Grains持久化</a>文档。</p>
+<h3 id="分布式acid事务">分布式ACID事务</h3>
+<p>除了上面描述的简单持久化模型之外，grains还可以<em>事务状态</em>. 多个grains可以参与<a href="https://en.wikipedia.org/wiki/ACID">酸性</a>不管事务的状态最终存储在何处。Orleans的事务是分布式和分散的(没有中央事务管理器或事务协调器)，并且<a href="https://en.wikipedia.org/wiki/Isolation_(database_systems)#Isolation_levels">可串行隔离</a>. 有关Orleans交易的更多信息，请参阅<a href="grains/transactions.html">文档</a>以及<a href="https://www.microsoft.com/en-us/research/publication/transactions-distributed-actors-cloud-2/">微软研究院技术报告</a>.</p>
+<h3 id="streams">Streams</h3>
+<p>流帮助开发人员以近乎实时的方式处理一系列数据项。Orleans的Streams<em>管理</em>：在Grain或客户端发布到流或订阅流之前，不需要创建或注册流。这使得流生产者和消费者之间以及与基础设施之间的更大程度的分离。流处理是可靠的：grains可以存储检查点(游标)，并在激活期间或之后的任何时间重置为存储的检查点。Streams支持向使用者批量传递消息，以提高效率和恢复性能。流由排队服务支持，如Azure事件中心、Amazon Kinesis等。可以将任意数量的流多路复用到较小数量的队列上，并且处理这些队列的责任在集群中均衡。</p>
+<h3 id="计时器提醒">计时器&amp;提醒</h3>
+<p>提醒是一种持久的Grains调度机制。它们可用于确保在将来某个时间点完成某些操作，即使此时grains当前未激活。计时器是非持久化的提醒物，可用于不需要可靠性的高频事件。有关详细信息，请参见<a href="grains/timers_and_reminders.html">计时器和提醒</a>文档。</p>
+<h3 id="灵活的grains存储">灵活的Grains存储</h3>
+<p>当一个Grains在Orleans被激活时，运行时决定在哪个服务器(silos)上激活该Grains。这就是所谓的Grains存储。Orleans的布局过程是完全可配置的：开发人员可以从一组现成的布局策略中进行选择，例如随机、首选本地和基于负载的，或者可以配置自定义逻辑。这样就可以充分灵活地决定在哪里产生grains。例如，可以将Grain存储在服务器上，靠近它们需要操作的资源或与之通信的其他Grain。</p>
+<h3 id="grains版本化异构集群">Grains版本化&amp;异构集群</h3>
+<p>应用程序代码会随着时间的推移而发展，以安全地解释这些更改的方式升级实时生产系统可能是一项挑战，尤其是在有状态的系统中。Orleans的Grains接口可以选择性地进行版本控制。集群维护了一个映射，映射出集群中的哪些Silo上有哪些grain实现以及这些实现的版本。运行时将此版本信息与存储策略结合使用，以便在将调用路由到grains时做出存储决策。除了安全地更新版本化的grains之外，这还支持异构集群，其中不同的silo具有不同的grain实现集。有关详细信息，请参见<a href="grains/grain_versioning/grain_versioning.html">Grains版本化</a>文档。</p>
+<h3 id="弹性伸缩性容错">弹性伸缩性&amp;容错</h3>
+<p>Orleans的设计是弹性伸缩的。当silos加入集群时，它能够接受新的激活，当silos离开集群时(由于规模缩小或机器故障)，在该silos上激活的Grains将根据需要在其余silos上重新激活。一个Orleans集群可以缩小到一个silos。支持弹性伸缩性的相同属性也支持容错：集群自动检测并从故障中快速恢复。</p>
+<h3 id="运行在任何地方">运行在任何地方</h3>
+<p>Orleans运行任何支持.NETCore或.NETFramework的地方。这包括在Linux、Windows和macOS上托管，并部署到Kubernetes、虚拟机或物理机、本地或云中，以及PaaS服务(如Azure云服务)。</p>
+<h3 id="无状态工作者">无状态工作者</h3>
+<p>无状态工作者是特殊标记的grains，没有任何关联状态，可以同时在多个silos上激活。这样就可以提高无状态函数的并行性。有关详细信息，请参见<a href="grains/stateless_worker_grains.html">无状态工作者Grains</a>文档。</p>
+<h3 id="grains拦截器">Grains拦截器</h3>
+<p>许多Grains的共同逻辑可以表示为<a href="grains/interceptors.html">Grains拦截器</a>. Orleans支持传入和呼出的过滤器。过滤器的一些常见用例有：授权、日志记录和遥测以及错误处理。</p>
+<h3 id="请求上下文">请求上下文</h3>
+<p>元数据和其他信息可以通过使用<a href="grains/request_context.html">请求上下文</a>. 请求上下文可用于打孔分布式跟踪信息或任何其他用户定义的值。</p>
+<h2 id="入门">入门</h2>
+<p>请看<a href="tutorials_and_samples/tutorial_1.html">入门教程</a>.</p>
+<h3 id="构建">构建</h3>
+<p>在Windows上，运行<code>build.cmd</code>脚本在本地构建NuGet包，然后从中引用所需的NuGet包<code>/Artifacts/Release/*</code>. 你可以跑了<code>Test.cmd</code>运行所有BVT测试，以及<code>TestAll.cmd</code>同时运行功能测试。</p>
+<p>在Linux和macOS上，运行<code>build.sh</code>脚本或<code>dotnet build ./OrleansCrossPlatform.sln</code>构建Orleans。</p>
+<h2 id="官方构建">官方构建</h2>
+<p>最新的稳定，生产质量发布<a href="https://github.com/dotnet/orleans/releases/latest">在这里</a>.</p>
+<p>夜间生成发布到<a href="https://dotnet.myget.org/gallery/orleans-ci">https://dotnet.myget.org/gallery/orleans-ci</a>. 这些构建通过了所有的功能测试，但是没有像发布到NuGet的稳定版本或预发布版本那样进行彻底测试。</p>
+<h3 id="在项目中使用夜间构建包">在项目中使用夜间构建包</h3>
+<p>要在项目中使用夜间生成，请使用以下任一方法添加MyGet提要：</p>
+<ol>
+<li>更改.csproj文件以包含此节：</li>
+</ol>
+<pre><code class="lang-xml">  &lt;RestoreSources&gt;
+    $(RestoreSources);
+    https://dotnet.myget.org/F/orleans-ci/api/v3/index.json;
+  &lt;/RestoreSources&gt;
+</code></pre><p>或</p>
+<ol>
+<li>创建<code>NuGet.config文件</code>包含以下内容的解决方案目录中的文件：</li>
+</ol>
+<pre><code class="lang-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;configuration&gt;
+ &lt;packageSources&gt;
+  &lt;clear /&gt;
+  &lt;add key=&quot;orleans-ci&quot; value=&quot;https://dotnet.myget.org/F/orleans-ci/api/v3/index.json&quot; /&gt;
+  &lt;add key=&quot;nuget&quot; value=&quot;https://api.nuget.org/v3/index.json&quot; /&gt;
+ &lt;/packageSources&gt;
+&lt;/configuration&gt;
+</code></pre><h2 id="社区">社区</h2>
+<ul>
+<li>提问方式<a href="https://github.com/dotnet/orleans/issues">在GitHub上打开问题</a>或者在<a href="https://stackoverflow.com/questions/ask?tags=orleans">堆栈溢出</a></li>
+<li><a href="https://gitter.im/dotnet/orleans">在Gitter上聊天</a></li>
+<li><a href="https://dotnet.github.io/orleans/blog/">Orleans博客</a></li>
+<li>跟随<a href="https://twitter.com/msftorleans">@Orleans小姐</a>Orleans公告的Twitter帐户。</li>
+<li><a href="https://github.com/OrleansContrib/">OrleansContrib-面向Orleans社区附加组件的GitHub组织</a>各种社区项目，包括监视、设计模式、存储提供程序等。</li>
+<li>开发人员希望<a href="http://dotnet.github.io/orleans/Community/Contributing.html">为Orleans贡献代码更改</a>.</li>
+<li>我们还鼓励您报告错误或通过启动新的<a href="https://github.com/dotnet/orleans/issues">会话</a>在GitHub上。</li>
+</ul>
+<h2 id="许可证">许可证</h2>
+<p>本项目根据<a href="https://github.com/dotnet/orleans/blob/master/LICENSE">MIT license</a>.</p>
+<h2 id="快速链接">快速链接</h2>
+<ul>
+<li><a href="http://research.microsoft.com/projects/orleans/">Microsoft研究项目主页</a></li>
+<li>技术报告：<a href="http://research.microsoft.com/apps/pubs/default.aspx?id=210931">可编程性和可扩展性的分布式虚拟参与者</a></li>
+<li><a href="http://dotnet.github.io/orleans/">Orleans文件</a></li>
+<li><a href="http://dotnet.github.io/orleans/Community/Contributing.html">贡献</a></li>
+</ul>
+<h2 id="orleans的起源">Orleans的起源</h2>
+<p>Orleans创建于<a href="https://www.microsoft.com/en-us/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/">微软研究并设计用于云计算</a>. 自2011年以来，它已被多家微软产品集团广泛应用于云计算和内部部署，其中最著名的是游戏工作室，如343 Industries和联盟作为Halo 4和5、Gears of War 4背后的云服务平台，以及其他一些。</p>
+<p>Orleans于2015年1月开放源码，吸引了许多开发商成立<a href="http://mattwarren.org/2016/11/23/open-source-net-2-years-later/">是.NET生态系统中最具活力的开源社区之一</a>. 在开发人员社区和微软Orleans团队的积极合作中，每天都会添加和改进特性。微软研究院继续与Orleans团队合作，推出新的主要功能，如<a href="https://www.microsoft.com/en-us/research/publication/geo-distribution-actor-based-services/">地理分布</a>, <a href="https://www.microsoft.com/en-us/research/publication/indexing-in-an-actor-oriented-database/">索引</a>，和<a href="https://www.microsoft.com/en-us/research/publication/transactions-distributed-actors-cloud-2/">分布式事务</a>，推动了最新技术的发展。对于许多.NET开发人员来说，Orleans已经成为构建分布式系统和云服务的首选框架。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/index.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

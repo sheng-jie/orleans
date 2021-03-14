@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Immediate vs. Delayed Confirmation | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Immediate vs. Delayed Confirmation | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="立即确认">立即确认</h1>
+
+<p>对于许多应用程序，我们希望确保事件立即得到确认，以便持久化的版本不会落后于内存中的当前版本，并且我们不会冒丢失最新状态的风险(如果grain失败)。我们可以通过以下规则来保证：</p>
+<ol>
+<li><p>在Grain方法返回之前，使用<code>ConfirmEvents</code>确认所有<code>RaiseEvent</code>调用。</p>
+</li>
+<li><p>在Grain方法返回之前确保由<code>RaiseConditionalEvent</code>返回的任务已完成。</p>
+</li>
+<li><p>避免<code>[Reentrant]</code>或<code>[AlwaysInterleave]</code>属性，因此一次只能处理一个grain调用。</p>
+</li>
+</ol>
+<p>如果我们遵循这些规则，则意味着在引发事件之后，在将事件写入存储器之前，不能执行其他Grain代码。因此，不可能观察到内存中的版本和存储中的版本之间的不一致。虽然这通常正是我们想要的，但它也有一些潜在的缺点。</p>
+<h3 id="潜在劣势">潜在劣势</h3>
+<ul>
+<li><p>如果<strong>与远程群集或存储的连接暂时中断</strong>，则grain变得不可用：实际上，grain在等待确认事件时无法执行任何代码，这可能需要无限长的时间(日志一致性协议一直在重试，直到恢复存储连接)。</p>
+</li>
+<li><p>处理时<strong>对单个grain实例的大量更新</strong>，一次确认一个会变得非常低效，即吞吐量很低。</p>
+</li>
+</ul>
+<h1 id="延迟确认">延迟确认</h1>
+<p>为了提高上述情况下的可用性和吞吐量，Grains可以选择执行以下一项或两项操作：</p>
+<ul>
+<li><p>允许grain方法在不等待确认的情况下引发事件。</p>
+</li>
+<li><p>允许重入，这样即使以前的调用在等待确认时被阻塞，grain也可以继续处理新的调用。</p>
+</li>
+</ul>
+<p>这意味着当某些事件仍在确认过程中时，可以执行Grain代码。这个<code>日志记录</code>api有一些具体规定，让开发人员能够精确控制如何处理当前“正在运行”的未经确认的事件。</p>
+<p>可以检查以下属性以了解当前未确认的事件：</p>
+<pre><code class="lang-csharp">IEnumerable&lt;EventType&gt; UnconfirmedEvents { get; }
+</code></pre><p>而且，由于<code>State</code>属性不包括未确认事件的影响，有一个可选属性</p>
+<pre><code class="lang-csharp">StateType TentativeState { get; }
+</code></pre><p>它返回一个“暂定”状态，通过应用所有未确认的事件从“状态”获得。在所有未经证实的事件被证实后，暂时状态本质上是对下一个确认状态的“最佳猜测”。然而，并不能保证它真的会发生，因为Grains可能会失败，或者因为事件可能与其他事件竞争而失败，导致它们被取消(如果它们是有条件的)或者出现在序列中比预期的更晚的位置(如果它们是无条件的)。</p>
+<h1 id="并发保证">并发保证</h1>
+<p>请注意，即使在使用Reentrant性或延迟确认的情况下，基于orleans turn的调度(协作并发)保证也始终适用。这意味着，即使有几个方法在进行中，也只有一个方法可以主动执行——所有其他的方法都处于等待状态，因此从来没有任何真正的竞争是由并行线程引起的。</p>
+<p>尤其要注意：</p>
+<ul>
+<li><p><code>State</code>, <code>TentativeState</code>, <code>Version</code>, 和 <code>UnconfirmedEvents</code> 属性可以在方法执行期间更改。</p>
+</li>
+<li><p>但这种变化只能在等待的时候发生。</p>
+</li>
+</ul>
+<p>这些保证假定用户代码保持在<a href="../external_tasks_and_grains.html">推荐做法</a>关于任务和异步/等待(特别是，不使用线程池任务，或者只将它们用于不调用grain功能且等待正确的代码)。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/event_sourcing/immediate_vs_delayed_confirmation.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

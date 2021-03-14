@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Why Orleans Streams? | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Why Orleans Streams? | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="为什么是orleansstreams">为什么是OrleansStreams？</h1>
+
+<p>已经有很多技术可以让你构建流处理系统。这些系统包括<strong>持久存储流数据</strong>(例如。，<a href="http://azure.microsoft.com/en-us/services/event-hubs/">活动中心</a>和<a href="http://kafka.apache.org/">卡夫卡</a>)以及要表达的系统<strong>计算操作</strong>过流数据(例如。，<a href="http://azure.microsoft.com/en-us/services/stream-analytics/">Azure流分析</a>, <a href="https://storm.apache.org/">阿帕奇风暴</a>，和<a href="https://spark.apache.org/streaming/">Apache Spark流媒体</a>). 这些都是很好的系统，允许您构建高效的数据流处理管道。</p>
+<h3 id="现有系统的局限性">现有系统的局限性</h3>
+<p>但是，这些系统不适合<strong>细Grain自由格式流上计算数据</strong>. 上面提到的流计算系统都允许您指定<strong>以相同方式应用于所有流项目的操作的统一数据流图</strong>. 当数据是统一的，并且您希望对这些数据表示相同的转换、过滤或聚合操作时，这是一个功能强大的模型。但是还有一些用例需要在不同的数据项上表达根本不同的操作。在其中一些应用程序中，作为处理的一部分，您有时需要进行外部调用，例如调用任意restapi。统一数据流处理引擎要么不支持这些场景，要么以有限和受限的方式支持它们，要么效率低下。这是因为它们天生就针对<strong>大量类似的物品，通常在表现力、加工方面受到限制</strong>. OrleansStreams针对的是其他场景。</p>
+<h3 id="动机">动机</h3>
+<p>这一切都是从Orleans用户请求支持从grain方法调用返回项目序列开始的。你可以想象，这只是冰山一角。他们实际上需要的远不止这些。</p>
+<p>Orleans Streams的一个典型场景是当您有每个用户的流并且您希望执行<strong>每个用户的不同处理</strong>，在单个用户的上下文中。我们可能有数百万用户，但他们中的一些人对天气感兴趣，可以订阅特定地点的天气预报，而有些人则对体育赛事感兴趣；还有人在跟踪某一航班的状态。处理这些事件需要不同的逻辑，但您不希望运行流处理的两个独立实例。一些用户只对特定的股票感兴趣，而且只有在应用某个外部条件时才感兴趣，这种情况可能不一定是流数据的一部分(因此需要在运行时作为处理的一部分进行动态检查)。</p>
+<p>用户一直在改变他们的兴趣，因此他们对特定事件流的订阅是动态的，因此<strong>流媒体的拓扑结构动态而快速地变化</strong>. 除此之外，<strong>每个用户的处理逻辑也会根据用户状态和外部事件动态地演化和更改</strong>. 外部事件可以修改特定用户的处理逻辑。例如，在一个游戏作弊检测系统中，当发现一种新的作弊方式时，需要用新规则更新处理逻辑来检测这种新的违规行为。这当然需要做<strong>不会中断正在进行的处理管道</strong>. 批量数据流处理引擎并不是为了支持这样的场景而构建的。</p>
+<p>几乎不用说，这样的系统必须运行在多台网络连接的机器上，而不是在一个节点上。因此，处理逻辑必须以可伸缩和弹性的方式分布在服务器集群上。</p>
+<h3 id="新要求">新要求</h3>
+<p>我们确定了流处理系统的4个基本需求，这将使它能够针对上述场景。</p>
+<ol>
+<li>灵活的流处理逻辑</li>
+<li>支持高度动态的拓扑</li>
+<li>细Grain流Grain</li>
+<li>分配</li>
+</ol>
+<h4 id="灵活的流处理逻辑">灵活的流处理逻辑</h4>
+<p>我们希望系统支持不同的方式来表达流处理逻辑。我们上面提到的现有系统要求开发人员编写一个声明性的数据流计算图，通常是遵循函数式编程风格。这限制了处理逻辑的表达能力和灵活性。Orleans流与处理逻辑的表达方式无关。它可以表示为一个数据流(例如，使用<a href="https://msdn.microsoft.com/en-us/data/gg577609.aspx">NET中的无功扩展(Rx)</a>)；作为一个函数程序；作为一个声明性查询；或者在一般的命令逻辑中。逻辑可以是有状态的或无状态的，可能有副作用，也可能没有副作用，并且可以触发外部操作。所有的权力都属于开发者。</p>
+<h4 id="支持动态拓扑">支持动态拓扑</h4>
+<p>我们希望系统能够支持动态演化的拓扑结构。我们上面提到的现有系统通常仅限于静态拓扑，这些拓扑在部署时是固定的，并且不能在运行时演化。在下面的数据流表达式示例中，在需要更改之前，一切都很简单。</p>
+<p><code>流.GroupBy(x=&gt;x.key)。提取(x=&gt;x.field)。选择(x=&gt;x+2)。平均窗口(x，5秒)。其中(x=&gt;x&gt;0.8)*</code></p>
+<p>在中更改阈值条件<code>在哪里？</code>过滤器，添加额外的<code>选择</code>语句或在数据流图中添加另一个分支并生成新的输出流。在现有系统中，如果不拆除整个拓扑结构并从头开始重新启动数据流，这是不可能的。实际上，这些系统将检查现有的计算，并将能够从最新的检查点重新启动。尽管如此，这样的重新启动对于一个实时产生结果的在线服务来说是破坏性的和昂贵的。当我们在讨论大量这样的表达式时，这种重新启动变得特别不切实际，这些表达式使用相似但不同的(每个用户、每个设备等)参数执行，并且这些参数不断变化。</p>
+<p>我们希望系统允许在运行时通过向计算图中添加新的链接或节点，或通过更改计算节点内的处理逻辑来进化流处理图。</p>
+<h4 id="细grain流grain">细Grain流Grain</h4>
+<p>在现有系统中，最小的抽象单元通常是整个流(拓扑)。然而，我们的许多目标场景要求拓扑中的单个节点/链路本身就是一个逻辑实体。这样每个实体都可以独立管理。例如，在包含多个链路的大流拓扑中，不同的链路可以具有不同的特性，并且可以在不同的物理传输上实现。一些链接可以通过TCP套接字，而其他链接可以通过可靠队列。不同的链接可以有不同的交付保证。不同的节点可以有不同的检查点策略，它们的处理逻辑可以用不同的模型甚至不同的语言来表达。这种灵活性在现有系统中通常是不可能的。</p>
+<p>抽象单元和灵活性的论据类似于SoA(面向服务的体系结构)与参与者的比较。Actor系统允许更大的灵活性，因为每个Actor本质上都是一个独立管理的“微型服务”。类似地，我们希望流系统允许这种细Grain的控制。</p>
+<h4 id="分配">分配</h4>
+<p>当然，我们的系统应该具有<strong>“良好的分布式系统”</strong>. 其中包括：</p>
+<ol>
+<li><em>可扩展性</em>-支持大量流和计算元素。</li>
+<li><em>弹性</em>-允许添加/删除资源以根据负载增长/收缩。</li>
+<li><em>可靠性</em>-对失败有弹性</li>
+<li><em>效率</em>-有效利用底层资源</li>
+<li><em>响应性</em>-启用近实时场景。</li>
+</ol>
+<p>这些都是我们在考虑建造的要求<a href="index.html"><strong>Orleans流媒体</strong></a>.</p>
+<hr>
+<p><em>澄清</em>：Orleans当前不支持像上面的示例那样直接编写声明性数据流表达式。如前所述，当前的Orleans流媒体api是更低级的构建块<a href="streams_programming_APIs.html">在这里</a>. 提供声明性的数据流表达式是我们未来的目标。</p>
+<h2 id="下一个">下一个</h2>
+<p><a href="streams_programming_APIs.html">Orleans流编程API</a></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/streaming/streams_why.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

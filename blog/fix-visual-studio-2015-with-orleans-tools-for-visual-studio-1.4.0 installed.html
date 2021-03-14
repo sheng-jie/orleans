@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#20351;&#29992;&#36866;&#29992;&#20110;Visual Studio 1.4.0&#30340;Orleans&#24037;&#20855;&#20462;&#22797;Visual Studio 2015 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#20351;&#29992;&#36866;&#29992;&#20110;Visual Studio 1.4.0&#30340;Orleans&#24037;&#20855;&#20462;&#22797;Visual Studio 2015 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="使用适用于visual-studio-140的orleans工具修复visual-studio-2015">使用适用于Visual Studio 1.4.0的Orleans工具修复Visual Studio 2015</h1>
+
+<p><a href="https://github.com/attilah">阿提拉·哈伊德里克(Attila Hajdrik)</a>2017/3/10上午10:06:17</p>
+<hr>
+<p>今天，如果两个社区成员安装了Orleans VSIX软件包的1.4.0版本，就会受到Visual Studio 2015问题的打击。我们有一个公开的问题可以跟踪<a href="https://github.com/dotnet/orleans/issues/2835">的GitHub</a>。如果您在Visual Studio 2017上安装了扩展程序，它将可以正常工作，只有2015年有此问题。我们看到的问题是您无法打开“工具和扩展”窗口，VS将显示此错误对话框：</p>
+<p><img src="media/2017/03/vsix-error-dialog-300x148.jpg" alt="vsix-error-dialog"> </p>
+<p>在研究解决方案时，我们未发布有问题的版本，并发布了该扩展的较旧版本，该扩展不适用于Visual Studio 2017，但都不会使Visual Studio 2015无法使用。如果您被此问题所困扰，请按照以下步骤进行修复：</p>
+<p>1)退出所有Visual Studio实例。</p>
+<p>2)打开管理员Visual Studio开发人员命令提示符。</p>
+<p>3)cd / D“％USERPROFILE％\本地设置，本地配置\微软\视觉工作室\14.0\扩展程序”</p>
+<p>4)dir OrleansVSTools.dll / s</p>
+<p>您将得到如下结果：</p>
+<p><code>C：\ Users \\ Local Settings \ Microsoft \ VisualStudio \ 14.0 \ Extensions \ pxzkggpq.50t的目录</code></p>
+<p>2017/03/10下午02:36 18,608 OrleansVSTools.dll</p>
+<p>1个文件18,608字节</p>
+<p>5)将完整目录路径复制到剪贴板。</p>
+<p>6)rmdir“” / q / s</p>
+<p>确保您仍在Extensions目录中。</p>
+<p>7)删除*.cache</p>
+<p>8)devenv /设置</p>
+<p>这可能会持续几分钟...请耐心等待。</p>
+<p>现在，您可以启动Visual Studio 2015，并验证“扩展”对话框是否打开并且一切正常。</p>
+<p>如果您为Visual Studio 2015配置了特殊的根后缀，则必须为该特定实例执行这些命令，因此不在14.0中执行，而可能在14.0Exp目录中执行。</p>
+<h5 id="更新2017年3月17日"><strong>更新2017年3月17日</strong></h5>
+<p>我们发布了更新的VSIX，该VSIX可与VS2013，VS2015，VS2017一起正常使用：<a href="https://marketplace.visualstudio.com/items?itemName=sbykov.MicrosoftOrleansToolsforVisualStudio">Microsoft Orleans Visual Studio工具</a></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/blog/fix-visual-studio-2015-with-orleans-tools-for-visual-studio-1.4.0 installed.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

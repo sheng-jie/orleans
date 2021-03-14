@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Handling Failures | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Handling Failures | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="处理故障">处理故障</h1>
+
+<blockquote><p><strong>注：</strong>本文件中提供的以下所有指导都是作为示例和思考的食粮。您不应该将它们视为解决问题的规范性解决方案，因为故障处理是一个相当特定于应用程序的主题。这些模式和其他模式只有在充分了解正在处理的具体案例的情况下才有用。</p>
+</blockquote>
+<p>在分布式系统编程中，最困难的是处理故障。actor模型及其工作方式使处理不同类型的故障变得更加容易，但是作为开发人员，您负责处理故障可能性并以适当的方式处理它们。</p>
+<h2 id="故障类型">故障类型</h2>
+<p>当你在编码你的Grains，所有的调用都是异步的，有可能通过网络。由于以下原因之一，每个Grains调用都可能失败。</p>
+<ul>
+<li>Grains是在silos上激活的，由于网络分区崩溃或其他原因，silos目前不可用。如果silos尚未声明为已死亡，则您的请求可能会超时。</li>
+<li>grain方法调用可以抛出异常，表示它失败，无法继续其工作。</li>
+<li>粒子的激活不存在，不能创建，因为<code>OnActivateAsync</code>方法引发异常或被死锁。</li>
+<li>网络故障不允许您在超时前与grain通信。</li>
+<li>其他潜在原因</li>
+</ul>
+<h2 id="故障检测">故障检测</h2>
+<p>获取对Grains的引用总是成功的，并且是一个本地操作。然而，方法调用可能会失败，当它们失败时，您会得到一个异常。您可以在需要的任何级别捕获异常，它们甚至可以跨Silo传播。</p>
+<h2 id="从失败中恢复">从失败中恢复</h2>
+<p>在Orleans，恢复工作的一部分是自动的，如果一个grain不再可访问，Orleans将在下一个方法调用中重新激活它。需要处理并确保在应用程序上下文中正确无误的是状态。一个Grains的状态可以部分更新，或者操作可能是一些应该跨多个Grains执行的部分操作。</p>
+<p>当你看到一个Grains操作失败后，你可以做以下一个或多个操作。</p>
+<ul>
+<li>只需重试您的操作，特别是如果它不涉及任何状态更改，这可能是半个完成。这是目前为止最典型的案例。</li>
+<li>尝试通过调用一个方法来修复/重置部分更改的状态，该方法将状态重置为最后一个已知的正确状态，或者通过调用<code>读状态异步</code>是的。</li>
+<li>重置所有相关激活的状态，以确保所有激活都处于干净状态。</li>
+<li>使用<a href="https://msdn.microsoft.com/en-us/library/jj591569.aspx">过程经理</a>或数据库事务，以确保完全完成或不做任何更改以避免部分更新状态。</li>
+</ul>
+<p>根据应用程序的不同，重试逻辑可能遵循简单或复杂的模式，您可能需要执行其他操作，如通知外部系统和其他操作，但通常，您要么必须重试操作，重新启动所涉及的Grain/Grain，要么停止响应，直到不可用的内容变为可用。</p>
+<p>如果您有一个负责数据库保存的grain，而数据库不可用，那么您只需使任何请求失败，直到数据库重新联机。如果可以根据用户的意愿重试您的操作，例如在注释grains中保存注释失败，则可以在用户按下重试按钮时重试(直到达到一定次数，以避免网络饱和)。如何做到这一点的具体细节取决于应用程序，但可能的策略是相同的。</p>
+<h2 id="策略参数与策略选择">策略参数与策略选择</h2>
+<p>如上一节所述，您选择的策略取决于应用程序和上下文。策略通常具有必须在应用程序级别决定的参数。例如，如果没有其他进程依赖于一个动作，那么您可能决定重试该动作最多每分钟5次，直到它最终完成为止。但在处理来自该用户的任何其他请求之前，必须先处理该用户的登录Grain请求。如果登录操作不起作用，则无法继续。</p>
+<p>有个向导<a href="https://docs.microsoft.com/en-us/azure/architecture/patterns/">在azure文档中</a>关于云的良好模式和实践，在大多数情况下也适用于Orleans。</p>
+<h2 id="一个相当复杂的例子">一个相当复杂的例子</h2>
+<p>因为在OrleansGrains是自动激活和停用的，你不能处理它们的生命周期，你通常只处理确保Grains状态是正确的，行动是正确的开始和结束相互关系。了解grains和它们执行的动作之间的依赖关系是理解如何在任何复杂系统中处理故障的重要一步。如果你需要储存Grains之间的关系，你可以简单地这样做，这也是一个广泛遵循的做法。</p>
+<p>举个例子，假设我们有一个<code>游戏管理器</code>起止粮<code>游戏</code>Grains和添加剂<code>玩家</code>去看比赛。如果我的<code>游戏管理器</code>Grains没有做它关于开始一个游戏的动作，属于它的相关游戏应该没有做它的<code>开始()</code>经理也可以通过编排来完成这项工作。在Orleans管理内存是自动的，系统会处理它，你只需要确保游戏开始，并且只有当经理能做到<code>开始()</code>也。您可以通过以顺序方式调用相关的方法，或者通过并行执行这些方法，并在其中任何一个方法失败时重置所有相关grains的状态来实现这一点。</p>
+<p>如果其中一个游戏收到一个调用，它将自动重新激活，因此，如果您需要管理者管理游戏Grains，那么所有与管理相关的对游戏的调用都应该通过<code>游戏管理器</code>是的。如果你需要在Grains之间进行配器，Orleans不会为你“自动”解决，你需要做你的配器。但事实上，你没有处理创建/销毁Grains的问题，这意味着你不需要担心资源管理。你不需要回答这些问题：</p>
+<ul>
+<li>我应该在哪里创建我的监督树？</li>
+<li>我应该注册哪些Grains才能按名称寻址？</li>
+<li>谷粒x还活着所以我可以给它发个信息吗？</li>
+<li>…</li>
+</ul>
+<p>所以，游戏开始的例子可以总结如下：</p>
+<ul>
+<li><code>游戏管理器</code>问<code>游戏</code>开始的Grains</li>
+<li><code>游戏</code>Grains加上<code>玩家</code>Grains自身</li>
+<li><code>游戏</code>问<code>玩家</code>为自己添加游戏的Grains</li>
+<li><code>游戏</code>将其状态设置为启动。</li>
+<li><code>游戏管理器</code>将游戏添加到其游戏列表中。</li>
+</ul>
+<p>现在，如果一个玩家未能将游戏添加到自身中，则不需要杀死所有玩家和游戏并重新开始。您只需重置将游戏添加到自己的其他玩家的状态，重置<code>游戏</code>和<code>游戏管理器</code>(如果需要的话)，重做你的工作或宣布失败。如果您可以在以后将游戏添加到玩家中，则可以在提醒或其他游戏访问(如<code>完成()</code>游戏方法。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/handling_failures.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

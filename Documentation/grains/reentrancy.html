@@ -1,0 +1,243 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Reentrancy | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Reentrancy | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="reentrant">Reentrant</h1>
+
+<p>Grain激活是单线程的，默认情况下，在下一个请求可以开始处理之前，从头到尾处理每个请求。在某些情况下，当一个请求等待异步操作完成时，可能需要激活来处理其他请求。由于这个和其他原因，Orleans给了开发人员一些控制请求交错行为的权限。在以下情况下，多个请求可能被交错：</p>
+<ul>
+<li>Grains等级标记为<code>[Reentrant]</code></li>
+<li>接口方法标记为<code>[AlwaysInterleave]</code></li>
+<li>同一调用链中的请求</li>
+<li>Grains的<em>MayInterleave</em>谓词返回<code>true</code></li>
+</ul>
+<p>以下各节将讨论这些情况。</p>
+<h2 id="重入grains">重入grains</h2>
+<p><code>Grains</code>实现类可以用<code>[Reentrant]</code>属性指示不同的请求可以自由交错。</p>
+<p>换言之，Reentrant激活可能在前一个请求尚未完成处理时开始执行另一个请求。执行仍然局限于单个线程，因此激活仍然一次执行一个回合，并且每个回合只代表激活的一个请求执行。</p>
+<p>ReentrantGrain代码永远不会并行运行多个Grain代码(Grain代码的执行将始终是单线程的)，但ReentrantGrain代码<strong>可能</strong>看见不同请求交错执行的代码。也就是说，不同请求的续转可以交错。</p>
+<p>例如，使用下面的伪代码，当Foo和Bar是同一grain类的2个方法时：</p>
+<pre><code class="lang-csharp">Task Foo()
+{
+    await task1;    // line 1
+    return Do2();   // line 2
+}
+
+Task Bar()
+{
+    await task2;   // line 3
+    return Do2();  // line 4
+}
+</code></pre><p>如果这个grains有标记<code>[Reentrant]</code>，Foo和Bar的执行可以交错执行。</p>
+<p>例如，可以按以下顺序执行：</p>
+<p>1号线、3号线、2号线和4号线。也就是说，来自不同请求的圈数交错。</p>
+<p>如果grain不Reentrant，唯一可能的执行将是：第1行、第2行、第3行、第4行或：第3行、第4行、第1行、第2行(在前一个请求完成之前，新请求无法启动)。</p>
+<p>在选择Reentrant和不Reentrantgrains时，主要的折衷是使交织正确工作的代码复杂度和对此进行推理的困难。</p>
+<p>在一个很小的例子中，当Grain是无状态的，逻辑也很简单时，更少(但不是太少，以便使用所有的硬件线程)Reentrantgrains通常会稍微更有效一些。</p>
+<p>如果代码更复杂，那么大量的不Reentrantgrains，即使总体效率稍低，也可以避免您在解决不明显的交错问题时的许多痛苦。</p>
+<p>最终答案将取决于具体的应用程序。</p>
+<h2 id="交错方法">交错方法</h2>
+<p>grains接口被标记为<code>[AlwaysInterleave]</code>无论grains是否Reentrant，都将被交错执行。考虑以下示例：</p>
+<pre><code class="lang-csharp">public interface ISlowpokeGrain : IGrainWithIntegerKey
+{
+    Task GoSlow();
+
+    [AlwaysInterleave]
+    Task GoFast();
+}
+
+public class SlowpokeGrain : Grain, ISlowpokeGrain
+{
+    public async Task GoSlow()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(10));
+    }
+
+    public async Task GoFast()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(10));
+    }
+}
+</code></pre><p>现在考虑由以下客户端请求启动的调用流：</p>
+<pre><code class="lang-csharp">var slowpoke = client.GetGrain&lt;ISlowpokeGrain&gt;(0);
+
+// A) This will take around 20 seconds
+await Task.WhenAll(slowpoke.GoSlow(), slowpoke.GoSlow());
+
+// B) This will take around 10 seconds.
+await Task.WhenAll(slowpoke.GoFast(), slowpoke.GoFast(), slowpoke.GoFast());
+</code></pre><p>访问<code>GoSlow</code>不会交错，所以执行两个<code>GoSlow()</code>调用大约需要20秒。另一方面，因为<code>GoFast</code>有标记<code>[AlwaysInterleave]</code>，对它的三个调用将同时执行，并将在大约10秒内完成，而不是至少需要30秒才能完成。</p>
+<h2 id="访问链中的reentrant性">访问链中的Reentrant性</h2>
+<p>为了避免死锁，调度器允许在给定的调用链中进行重入。考虑以下两个grains的例子，它们具有相互递归的方法，<code>IsEven</code>和<code>IsOdd</code>:</p>
+<pre><code class="lang-csharp">public interface IEvenGrain : IGrainWithIntegerKey
+{
+    Task&lt;bool&gt; IsEven(int num);
+}
+
+public interface IOddGrain : IGrainWithIntegerKey
+{
+    Task&lt;bool&gt; IsOdd(int num);
+}
+
+public class EvenGrain : Grain, IEvenGrain
+{
+    public async Task&lt;bool&gt; IsEven(int num)
+    {
+        if (num == 0) return true;
+        var oddGrain = this.GrainFactory.GetGrain&lt;IOddGrain&gt;(0);
+        return await oddGrain.IsOdd(num - 1);
+    }
+}
+
+public class OddGrain : Grain, IOddGrain
+{
+    public async Task&lt;bool&gt; IsOdd(int num)
+    {
+        if (num == 0) return false;
+        var evenGrain = this.GrainFactory.GetGrain&lt;IEvenGrain&gt;(0);
+        return await evenGrain.IsEven(num - 1);
+    }
+}
+</code></pre><p>现在考虑由以下客户端请求启动的调用：</p>
+<pre><code class="lang-csharp">var evenGrain = client.GetGrain&lt;IEvenGrain&gt;(0);
+await evenGrain.IsEven(2);
+</code></pre><p>上面的代码调用<code>IEvenGrain.IsEven(2)</code>，调用<code>IOddGrain.IsOdd(1)</code>，调用<code>IEvenGrain.IsEven(0)</code>，返回<code>true</code>将访问链备份到客户端。如果没有调用链Reentrant，上述代码将在以下情况下导致死锁当<code>IOddGrain</code>调用<code>IEvenGrain.IsEven(0)</code>. 然而，对于调用链Reentrant，调用被认为是开发人员的意图，因此允许继续进行。</p>
+<p>可以通过设置来禁用此行为<code>SchedulingOptions.AllowCallChainEntrancy</code>为<code>false</code>. 例如：</p>
+<pre><code class="lang-csharp">siloHostBuilder.Configure&lt;SchedulingOptions&gt;(
+    options =&gt; options.AllowCallChainReentrancy = false);
+</code></pre><h2 id="使用谓词的reentrant性">使用谓词的Reentrant性</h2>
+<p>Grain类可以指定一个谓词，用于通过检查请求逐个调用确定交错。这个<code>[MayInterleave(string methodName)]</code>属性提供此功能。属性的参数是grain类中接受<code>InvokeMethodRequest</code>对象并返回<code>bool</code>指示是否应交错请求。</p>
+<p>下面是一个示例，如果请求参数类型具有 <code>[Interleave]</code>属性：</p>
+<pre><code class="lang-csharp">[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public sealed class InterleaveAttribute : Attribute { }
+
+// Specify the may-interleave predicate.
+[MayInterleave(nameof(ArgHasInterleaveAttribute))]
+public class MyGrain : Grain, IMyGrain
+{
+    public static bool ArgHasInterleaveAttribute(InvokeMethodRequest req)
+    {
+        // Returning true indicates that this call should be interleaved with other calls.
+        // Returning false indicates the opposite.
+        return req.Arguments.Length == 1
+            &amp;&amp; req.Arguments[0]?.GetType().GetCustomAttribute&lt;InterleaveAttribute&gt;() != null;
+    }
+
+    public Task Process(object payload)
+    {
+        // Process the object.
+    }
+}
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/reentrancy.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

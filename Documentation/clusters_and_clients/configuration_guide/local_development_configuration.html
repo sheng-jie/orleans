@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Local development configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Local development configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="本地开发配置">本地开发配置</h1>
+
+<p>有关针对Orleans 2.0的工作示例应用程序，请参见：<a href="https://github.com/dotnet/orleans/tree/master/Samples/2.0/HelloWorld">https://github.com/dotnet/orleans/tree/master/samples/2.0/helloworld网站</a>此示例托管了在不同平台上工作的.NET Core控制台应用程序中的客户端和silos，但对于.NET Framework 4.6.1+控制台应用程序(仅在Windows上工作)也可以这样做。</p>
+<h2 id="silos配置">silos配置</h2>
+<p>对于本地开发，请参阅下面的示例，了解如何为这种情况配置silos。它配置并启动一个silos，分别作为silos和网关端口监听“环回”地址和11111和30000。</p>
+<p>添加<code>Microsoft.Orleans.Server</code>项目的nuget元包。在您熟悉了api之后，可以选择包含在<code>Microsoft.Orleans.Server</code>你真的需要，并参考他们。</p>
+<pre><code class="lang-PowerShell">PM&gt; Install-Package Microsoft.Orleans.Server
+</code></pre><p>您需要配置<code>离合器选项</code>通过<code>ISiloBuilder.Configure</code>方法，指定您想要的<code>发展集群</code>将此silos作为主要的群集选择，然后配置silos终结点。</p>
+<p><code>配置应用程序部件</code>call显式地将具有grain类的程序集添加到应用程序设置中。它还添加任何引用的程序集，因为<code>有参考文献</code>分机。完成这些步骤后，将生成silos主机并启动silos。</p>
+<p>您可以创建一个空的控制台应用程序项目，目标是.NETFramework4.6.1或更高版本，用于托管silos和.NETCore控制台应用程序。</p>
+<p>以下是如何启动本地silos的示例：</p>
+<pre><code class="lang-csharp">public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        try
+        {
+            var host = await StartSilo();
+            Console.WriteLine(&quot;Press Enter to terminate...&quot;);
+            Console.ReadLine();
+
+            await host.StopAsync();
+
+            return;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return;
+        }
+    }
+
+   private static async Task&lt;ISiloHost&gt; StartSilo()
+    {
+        var builder = new SiloHostBuilder()
+        // Use localhost clustering for a single local silo
+            .UseLocalhostClustering()
+            // Configure ClusterId and ServiceId
+            .Configure&lt;ClusterOptions&gt;(options =&gt;
+            {
+                options.ClusterId = &quot;dev&quot;;
+                options.ServiceId = &quot;MyAwesomeService&quot;;
+            })
+            // Configure connectivity
+        .Configure&lt;EndpointOptions&gt;(options =&gt; options.AdvertisedIPAddress = IPAddress.Loopback)
+            // Configure logging with any logging framework that supports Microsoft.Extensions.Logging.
+            // In this particular case it logs using the Microsoft.Extensions.Logging.Console package.
+            .ConfigureLogging(logging =&gt; logging.AddConsole());
+
+        var host = builder.Build();
+        await host.StartAsync();
+        return host;
+    }
+}
+</code></pre><h2 id="客户端配置">客户端配置</h2>
+<p>对于本地开发，请参阅下面的示例，了解如何为这种情况配置客户端。它配置将连接到<code>回送</code>silos。</p>
+<p>添加<code>Microsoft.Orleans.client</code>项目的nuget元包。在您熟悉了api之后，可以选择包含在<code>Microsoft.Orleans.client</code>你真的需要，并参考他们。</p>
+<pre><code class="lang-PowerShell">PM&gt; Install-Package Microsoft.Orleans.Client
+</code></pre><p>您需要配置<code>客户端生成器</code>使用与为本地silos指定的群集ID匹配的群集ID，并将静态群集指定为指向silos网关端口的群集选择</p>
+<p><code>配置应用程序部件</code>call显式地将具有grain接口的程序集添加到应用程序设置中。</p>
+<p>完成这些步骤后，我们可以构建客户端并<code>连接()</code>方法连接到群集。</p>
+<p>您可以创建一个空的控制台应用程序项目，目标是.net framework 4.6.1或更高版本以运行客户端，或者重用为托管silos而创建的控制台应用程序项目。</p>
+<p>以下是客户端如何连接到本地silos的示例：</p>
+<pre><code class="lang-csharp">client = new ClientBuilder()
+    // Use localhost clustering for a single local silo
+    .UseLocalhostClustering()
+    // Configure ClusterId and ServiceId
+    .Configure&lt;ClusterOptions&gt;(options =&gt;
+    {
+        options.ClusterId = &quot;dev&quot;;
+        options.ServiceId = &quot;MyAwesomeService&quot;;
+    })
+    .ConfigureLogging(logging =&gt; logging.AddConsole())
+var client = builder.Build();
+await client.Connect();
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/configuration_guide/local_development_configuration.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

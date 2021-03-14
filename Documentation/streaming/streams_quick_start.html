@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans Streams Quick Start | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans Streams Quick Start | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleansstreams快速入门">OrleansStreams快速入门</h1>
+
+<p>本指南将向您展示设置和使用Orleans Streams的快速方法。要了解有关流功能的详细信息，请阅读本文档的其他部分。</p>
+<h2 id="所需配置">所需配置</h2>
+<p>在本指南中，我们将使用基于简单消息的流，该流使用Grains消息传递将流数据发送给订阅者。我们将使用内存中的存储提供程序来存储订阅列表，因此对于实际的生产应用程序来说，这不是明智的选择。</p>
+<p>在silos上，其中hostBuilder是ISiloHostBuilder</p>
+<pre><code class="lang-csharp">hostBuilder.AddSimpleMessageStreamProvider(&quot;SMSProvider&quot;)
+           .AddMemoryGrainStorage(&quot;PubSubStore&quot;);
+</code></pre><p>在群集客户端上，其中clientBuilder是IClientBuilder</p>
+<pre><code class="lang-csharp">clientBuilder.AddSimpleMessageStreamProvider(&quot;SMSProvider&quot;);
+</code></pre><p>现在，我们可以创建流，使用它们作为生产者发送数据，也可以作为订阅者接收数据。</p>
+<h2 id="生产活动">生产活动</h2>
+<p>为流生成事件相对容易。您应该首先访问在上述配置中定义的流提供程序(<code>短信提供商</code>)，然后选择一个流并将数据推送到该流。</p>
+<pre><code class="lang-csharp">//Pick a guid for a chat room grain and chat room stream
+var guid = some guid identifying the chat room
+//Get one of the providers which we defined in config
+var streamProvider = GetStreamProvider(&quot;SMSProvider&quot;);
+//Get the reference to a stream
+var stream = streamProvider.GetStream&lt;int&gt;(guid, &quot;RANDOMDATA&quot;);
+</code></pre><p>如您所见，我们的流具有GUID和名称空间。这将使识别唯一流变得容易。例如，一个聊天室的名称空间可以是“ Rooms”，GUID可以是拥有的RoomGrain的GUID。</p>
+<p>在这里，我们使用一些已知聊天室的GUID。现在使用<code>OnNext</code>流的方法，我们可以将数据推送到它。让我们在计时器内并使用随机数进行操作。您也可以对流使用任何其他数据类型。</p>
+<pre><code class="lang-csharp">RegisterTimer(s =&gt;
+        {
+            return stream.OnNextAsync(new System.Random().Next());
+        }, null, TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(1000));
+</code></pre><h2 id="订阅和接收流数据">订阅和接收流数据</h2>
+<p>为了接收数据，我们可以使用隐式/显式订阅，这在手册的其他页面中有完整介绍。在这里，我们使用隐式订阅，这更容易。当Grains类型想要隐式订阅流时，它使用属性<code>ImplicitStreamSubscription(命名空间)]</code>。</p>
+<p>对于我们的情况，我们将定义如下的ReceiverGrain：</p>
+<pre><code class="lang-csharp">[ImplicitStreamSubscription(&quot;RANDOMDATA&quot;)]
+public class ReceiverGrain : Grain, IRandomReceiver
+</code></pre><p>现在，每当像计时器中一样将某些数据推送到名称空间RANDOMDATA的流中时，<code>接收器grain</code>具有相同GUID的流将接收到该消息。即使当前不存在任何激活的Grains，运行时也会自动创建一个新的Grains并将消息发送给它。</p>
+<p>为了使其正常工作，我们需要通过设置我们的订阅来完成订阅过程<code>OnNext</code>接收数据的方法。所以我们<code>接收器grain</code>应该调用给它<code>OnActivateAsync</code>像这样的东西</p>
+<pre><code class="lang-csharp">//Create a GUID based on our GUID as a grain
+var guid = this.GetPrimaryKey();
+//Get one of the providers which we defined in config
+var streamProvider = GetStreamProvider(&quot;SMSProvider&quot;);
+//Get the reference to a stream
+var stream = streamProvider.GetStream&lt;int&gt;(guid, &quot;RANDOMDATA&quot;);
+//Set our OnNext method to the lambda which simply prints the data, this doesn&#39;t make new subscriptions
+await stream.SubscribeAsync&lt;int&gt;(async (data, token) =&gt; Console.WriteLine(data));
+</code></pre><p>我们都准备好了。唯一的要求是，某些事情会触发我们的生产者Grains的创建，然后它将注册计时器并开始向所有感兴趣的方发送随机整数。</p>
+<p>同样，本指南跳过了许多细节，仅适合于展示大图。阅读本手册的其他部分以及有关RX的其他资源，以更好地了解可用的内容和方法。</p>
+<p>反应式编程可以是解决许多问题的非常有效的方法。例如，您可以在订户中使用LINQ来过滤数字并做各种有趣的事情。</p>
+<h2 id="下一个">下一个</h2>
+<p><a href="streams_programming_APIs.html">Orleans流编程API</a></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/streaming/streams_quick_start.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Grain Lifecycle | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Grain Lifecycle | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="grains生命周期">Grains生命周期</h1>
+
+<h2 id="总览">总览</h2>
+<p>OrleansGrains使用可观察到的生命周期(请参见<a href="../implementation/orleans_lifecycle.html">Orleans生命周期</a>)进行有序的激活和停用。这允许在Grains激活和收集期间以有序的方式启动和停止Grains逻辑，系统组件和应用程序逻辑。</p>
+<h3 id="阶段">阶段</h3>
+<p>预定的Grains生命周期阶段如下。</p>
+<pre><code class="lang-csharp">public static class GrainLifecycleStage
+{
+    public const int First = int.MinValue;
+    public const int SetupState = 1000;
+    public const int Activate = 2000;
+    public const int Last = int.MaxValue;
+}
+</code></pre><ul>
+<li><code>First</code>-Grains生命周期的第一阶段</li>
+<li><code>SetupState</code>–在激活之前设置grains状态。对于有状态的Grains，这是从存储中加载状态的阶段。</li>
+<li><code>Activate</code>–<code>OnActivateAsync</code>和<code>OnDeactivateAsync</code>阶段</li>
+<li><code>Last</code>-Grains生命周期的最后阶段</li>
+</ul>
+<p>尽管将在Grains激活期间使用Grains生命周期，但由于在某些错误情况下(例如Silo崩溃)并非总是停用Grains，因此应用程序不应依赖于在Grains停用过程中始终执行的Grains生命周期。</p>
+<h3 id="grain生命周期参与">grain生命周期参与</h3>
+<p>应用程序逻辑可以通过两种方式参与Grains的生命周期：Grains可以参与其生命周期，和/或组件可以通过Grains激活上下文访问生命周期(请参阅IGrainActivationContext.ObservableLifecycle)。</p>
+<p>Grains始终参与其自身的生命周期，因此可以通过覆盖参与方法来引入应用程序逻辑。</p>
+<h3 id="示例">示例</h3>
+<pre><code class="lang-csharp">public override void Participate(IGrainLifecycle lifecycle)
+{
+    base.Participate(lifecycle);
+    lifecycle.Subscribe(this.GetType().FullName, GrainLifecycleStage.SetupState, OnSetupState);
+}
+</code></pre><p>在上面的示例中，<code>grains&lt;T&gt;</code>覆盖<code>参加</code>告诉生命周期的方法在生命周期的SetupState阶段调用其OnSetupState方法。</p>
+<p>在Grains的构造过程中创建的组件也可以参与生命周期，而无需添加任何特殊的Grains逻辑。由于Grains的激活环境(<code>IGrainActivationContext</code>)，包括Grains的生命周期(<code>IGrainActivationContext.ObservableLifecycle</code>)是在创建Grains之前创建的，容器注入Grains中的任何成分都可以参与Grains的生命周期。</p>
+<h3 id="示例-1">示例</h3>
+<p>使用工厂方法<code>Create(..)</code>创建时，以下组件会参与Grains的生命周期。这种逻辑可能存在于组件的构造函数中，但是这会冒着风险在组件完全构建之前将其添加到生命周期中的风险，这可能并不安全。</p>
+<pre><code class="lang-csharp">public class MyComponent : ILifecycleParticipant&lt;IGrainLifecycle&gt;
+{
+    public static MyComponent Create(IGrainActivationContext context)
+    {
+        var component = new MyComponent();
+        component.Participate(context.ObservableLifecycle);
+        return component;
+    }
+
+    public void Participate(IGrainLifecycle lifecycle)
+    {
+        lifecycle.Subscribe&lt;MyComponent&gt;(GrainLifecycleStage.Activate, OnActivate);
+    }
+
+    private Task OnActivate(CancellationToken ct)
+    {
+        // Do stuff
+    }
+}
+</code></pre><p>通过工厂方法<code>Create(..)</code>注册上述组件到服务容器中，任何将组件作为依赖项构造的grain将使组件参与其生命周期，而grain中没有任何特殊逻辑。</p>
+<h4 id="在容器中注册组件">在容器中注册组件</h4>
+<pre><code class="lang-csharp">    services.AddTransient&lt;MyComponent&gt;(sp =&gt;
+        MyComponent.Create(sp.GetRequiredService&lt;IGrainActivationContext&gt;());
+</code></pre><h4 id="grains以成分为依存关系">Grains以成分为依存关系</h4>
+<pre><code class="lang-csharp">public class MyGrain : Grain, IMyGrain
+{
+    private readonly MyComponent component;
+
+    public MyGrain(MyComponent component)
+    {
+        this.component = component;
+    }
+}
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/grain_lifecycle.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

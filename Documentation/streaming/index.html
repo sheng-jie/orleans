@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans Streams | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans Streams | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleansstreams">OrleansStreams</h1>
+
+<p>Orleans v.1.0.0增加了对编程模型的流扩展的支持。流扩展提供了一组抽象和API，使对流的思考和使用变得更简单，更可靠。流扩展允许开发人员编写以结构化方式对一系列事件进行操作的响应式应用程序。流提供程序的可扩展性模型使编程模型可与多种现有排队技术兼容并可移植，例如<a href="http://azure.microsoft.com/en-us/services/event-hubs/">活动中心</a>，<a href="http://azure.microsoft.com/en-us/services/service-bus/">服务总线</a>，<a href="http://azure.microsoft.com/en-us/documentation/articles/storage-dotnet-how-to-use-queues/">Azure队列</a>和<a href="http://kafka.apache.org/">阿帕奇·卡夫卡</a>。无需编写特殊代码或运行专用进程来与此类队列进行交互。</p>
+<h2 id="我为什么要在乎">我为什么要在乎？</h2>
+<p>如果您已经知道所有<a href="https://confluentinc.wordpress.com/2015/01/29/making-sense-of-stream-processing/">流处理</a>并且熟悉诸如<a href="http://azure.microsoft.com/en-us/services/event-hubs/">活动中心</a>，<a href="http://kafka.apache.org/">卡夫卡</a>，<a href="http://azure.microsoft.com/en-us/services/stream-analytics/">Azure流分析</a>，<a href="https://storm.apache.org/">阿帕奇风暴</a>，<a href="https://spark.apache.org/streaming/">Apache Spark流</a>和<a href="https://msdn.microsoft.com/en-us/data/gg577609.aspx">.NET中的反应性扩展(Rx)</a>，您可能会问为什么要关心。<strong>为什么我们还需要另一个流处理系统，以及Actor与流之间的关系？</strong> <a href="streams_why.html">“为什么OrleansStreams？”</a>是要回答这个问题。</p>
+<h2 id="程式设计模型">程式设计模型</h2>
+<p>Orleans Streams编程模型背后有许多原则。</p>
+<ol>
+<li>OrleansStreams是<em>虚拟</em>。即，流始终存在。它不是显式创建或销毁的，它永远不会失败。</li>
+<li>流是<em>由...确定</em>流ID，仅<em>逻辑名称</em>由GUID和字符串组成。</li>
+<li>OrleansStreams允许<em>在时间和空间上将数据生成与其处理脱钩</em>。这意味着流生产者和流使用者可能位于不同的服务器上，处于不同的时间，并且将承受故障。</li>
+<li>OrleansStreams是<em>轻巧而动态</em>。Orleans Streaming Runtime旨在处理大量高速率来来去去的流。</li>
+<li>Orleans流<em>绑定是动态的</em>。Orleans Streaming Runtime旨在处理Grains以高速率连接到流或从流中断开的情况。</li>
+<li>Orleans流媒体运行时<em>透明地管理流消耗的生命周期</em>。应用程序订阅流之后，从那时起，即使存在故障，它也将接收流的事件。</li>
+<li>OrleansStreams<em>跨Grains和Orleans客户统一工作</em>。</li>
+</ol>
+<h2 id="编程api">编程API</h2>
+<p>应用程序通过与众所周知的API非常相似的API与流进行交互<a href="https://msdn.microsoft.com/en-us/data/gg577609.aspx">.NET中的反应性扩展(Rx)</a>， 通过使用<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans/Streams/Core/IAsyncStream.cs"><code>Orleans.Streams.IAsyncStream &lt;T&gt;</code></a>实现\
+<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans/Streams/Core/IAsyncObserver.cs"><code>Orleans.Streams.IAsyncObserver &lt;T&gt;</code></a>和<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans/Streams/Core/IAsyncObservable.cs"><code>Orleans.Streams.IAsyncObservable &lt;T&gt;</code></a>接口。</p>
+<p>在下面的典型示例中，设备生成一些数据，这些数据作为HTTP请求发送到云中运行的服务。在前端服务器中运行的Orleans客户端收到此HTTP调用，并将数据发布到匹配的设备流中：</p>
+<pre><code class="lang-csharp">public async Task OnHttpCall(DeviceEvent deviceEvent)
+{
+     // Post data directly into device&#39;s stream.
+     IStreamProvider streamProvider = GrainClient.GetStreamProvider(&quot;myStreamProvider&quot;);
+     IAsyncStream&lt;DeviceEventData&gt; deviceStream = streamProvider.GetStream&lt;DeviceEventData&gt;(deviceEvent.DeviceId);
+     await deviceStream.OnNextAsync(deviceEvent.Data);
+}
+</code></pre><p>在下面的另一个示例中，聊天用户(实现为Orleans Grain)加入聊天室，获取该房间中所有其他用户生成的聊天消息流的句柄并进行订阅。请注意，聊天用户不需要了解聊天室的Grain本身(我们的系统中可能没有这种Grain)或该组中产生消息的其他用户。不用说，要生成聊天流，用户无需知道当前订阅了谁。这说明了如何将聊天用户在时间和空间上完全分离。</p>
+<pre><code class="lang-csharp">public class ChatUser: Grain
+{
+    public async Task JoinChat(string chatGroupName)
+    {
+       IStreamProvider streamProvider = base.GetStreamProvider(&quot;myStreamProvider&quot;);
+       IAsyncStream&lt;string&gt; chatStream = streamProvider.GetStream&lt;string&gt;(chatGroupName);
+       await chatStream.SubscribeAsync((string chatEvent) =&gt; Console.Out.Write(chatEvent));
+    }
+}
+</code></pre><hr>
+<h2 id="快速入门样本">快速入门样本</h2>
+<p>的<a href="streams_quick_start.html">快速入门样本</a>是对在应用程序中使用流的总体工作流程的快速概述。阅读后，您应该阅读<a href="streams_programming_APIs.html">流编程API</a>对概念有更深入的了解。</p>
+<h2 id="流编程api">流编程API</h2>
+<p>一个<a href="streams_programming_APIs.html">流编程API</a>提供了有关编程API的详细说明。</p>
+<h2 id="流提供者">流提供者</h2>
+<p>流可以通过各种形状和形式的物理通道出现，并且可以具有不同的语义。Orleans Streaming旨在通过以下概念支持这种多样性<strong>流提供者</strong>，这是系统中的可扩展点。Orleans目前有两个流提供程序的实现：基于TCP<strong>简单消息流提供者</strong>和基于Azure队列<strong>Azure队列流提供程序</strong>。有关Steam Providers的更多详细信息，请访问：<a href="stream_providers.html">流提供者</a>。</p>
+<h2 id="流语义">流语义</h2>
+<p><strong>流订阅语义</strong>：Orleans Streams保证Stream Subscription操作的顺序一致性。具体来说，当消费者订阅流时，一旦<code>Task</code>如果代表订阅操作已成功解决，则使用者将看到订阅后生成的所有事件。此外，可倒带流允许通过使用以下内容从过去的任意时间点进行订阅<code>StreamSequenceToken</code>(可以找到更多详细信息<a href="stream_providers.html">这里</a>)。</p>
+<p><strong>个人流事件交付保证</strong>：单个事件传递的保证取决于单个流提供者。一些提供仅尽最大可能的一次传送(例如简单消息流(SMS))，而其他一些提供至少一次的传送(例如Azure队列流)。甚至可以构建一个将保证一次交付的流提供程序(我们还没有这样的提供程序，但是可以构建一个)。</p>
+<p><strong>活动交付单</strong>：事件顺序还取决于特定的流提供程序。在SMS流中，生产者通过控制其发布方式来显式控制消费者看到的事件的顺序。Azure队列流不保证FIFO顺序，因为基础Azure队列在故障情况下不保证顺序。应用程序还可以通过使用以下命令控制自己的流交付顺序<code>StreamSequenceToken</code>。</p>
+<h2 id="流实施">流实施</h2>
+<p>的<a href="../implementation/streams_implementation.html">Orleans流实施</a>提供了内部实现的高级概述。</p>
+<h2 id="代码样本">代码样本</h2>
+<p>可以找到有关如何在Grains中使用流式API的更多示例。<a href="https://github.com/dotnet/orleans/blob/master/test/Grains/TestGrains/SampleStreamingGrain.cs">这里</a>。我们计划在将来创建更多样本。</p>
+<h2 id="更多材料">更多材料</h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=eSepBlfY554">关于流的Orleans虚拟聚会</a></li>
+<li><a href="http://dotnet.github.io/orleans/Presentations/Orleans%20Streaming%20-%20Virtual%20meetup%20-%205-22-2015.pptx">虚拟聚会的Orleans流媒体演示</a></li>
+</ul>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/streaming/index.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

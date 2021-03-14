@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#26368;&#26032;&#29256;&#26412;-1.3.1 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#26368;&#26032;&#29256;&#26412;-1.3.1 | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="最新版本-131">最新版本-1.3.1</h1>
+
+<p><a href="https://github.com/sergeybykov">谢尔盖·拜科夫(Sergey Bykov)</a>2016/12/1下午5:48:39</p>
+<hr>
+<p>11月15日，我们发布了我们的<a href="https://github.com/dotnet/orleans/releases/tag/v1.3.1">最新版本-1.3.1</a>。此修补程序版本自1.3.0起已合并到master中，其中包含许多错误修复和改进。1.3.1有两个主要原因。</p>
+<ul>
+<li>343 Industries需要一个在流传输方面进行了一些改进的版本，以及EventHub流提供程序，以简化从Halo 5发布之前一直在运行的流发行堆栈的预发行版本的迁移。</li>
+<li><a href="https://github.com/OrleansContrib/Orleankka">Orleans卡</a>需要一个相当高级的功能，使他们可以在每个消息的基础上控制请求的交织。<a href="https://github.com/yevhen">@yevhen</a><a href="https://github.com/dotnet/orleans/pull/2246">提交了一份公关</a>为此，经过几次设计和实现迭代。</li>
+</ul>
+<p>因此，1.3.1不是纯补丁程序发行版，因为它包含一项新功能。我们认为这里还可以，因为该功能实际上对其他人没有影响。</p>
+<p>如果要从1.2.x或更早的版本升级到1.3.1，请注意在1.3.0中所做的细微更改。的<a href="https://github.com/dotnet/orleans/releases/tag/v1.3.0">1.3.0发行说明</a>喊出来：</p>
+<p><strong>注意：此版本中有一个微妙的重大更改，很容易错过。</strong></p>
+<p><em>如果您正在使用<code>AzureSilo.Start(ClusterConfiguration配置，字符串DeploymentId)</code>在您的代码中，该重载已被删除，但是替换它的新重载具有相同的参数签名，但具有不同的第二个参数：<code>(ClusterConfiguration配置，字符串connectionString)</code>。现在必须将部署ID作为config参数的一部分传递：config.Globals.DeploymentId。这样就消除了传递两个不同的部署ID的不确定性，但是不幸的是，这需要付出破坏性的API更改的代价。</em></p>
+<p>1.3.0是一个相当大的版本，具有许多改进，错误修复以及地理分布的多集群的主要新功能。它的大部分内容都列在<a href="https://github.com/dotnet/orleans/releases/tag/v1.3.0-beta2">1.3.0-beta2发行说明</a>。地理分布功能在<a href="http://dotnet.github.io/orleans/Documentation/Multi-Cluster/Overview.html">多集群支持部分</a>文档。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/blog/latest-release-1.3.1.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

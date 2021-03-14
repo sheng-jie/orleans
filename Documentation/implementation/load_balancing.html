@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Load Balancing | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Load Balancing | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="负载均衡">负载均衡</h1>
+
+<p><strong>从广义上讲，负载平衡是Orleans运行时的支柱之一</strong>。Orleans运行时会尝试使所有内容保持平衡，因为平衡可以最大程度地利用资源并避免出现热点，从而提高性能，并有助于提高弹性。Orleans的负载平衡适用于多个地方。以下是运行时进行平衡的地方的非详尽列表：</p>
+<ol>
+<li><p><strong>默认的演员存储策略是随机的</strong>-新的激活随机分布在各个孤岛中。这样可以在大多数情况下平衡存储并防止出现热点。</p>
+</li>
+<li><p>更高级<strong>ActivationCountPlacement</strong>尝试使所有silos上的激活次数相等，从而导致各个silos上的激活分布更加均匀。这对于弹性尤其重要。</p>
+</li>
+<li><p><strong>Grains目录服务</strong>在分布式哈希表的顶部构建，该哈希表本质上是平衡的。目录服务将Grains映射到激活，每个silos都拥有全局映射表的一部分，并且该表以平衡的方式在所有silos中进行全局分区。为此，我们将一致的哈希与虚拟存储桶一起使用。</p>
+</li>
+<li><p>客户端连接到所有<strong>网关</strong>并平衡地分散他们的要求。</p>
+</li>
+<li><p><strong>提醒服务</strong>是分布式分区运行时服务。就像粮仓目录中一样，哪个silos的分配负责服务哪个提醒，并通过一致的哈希在所有silos之间进行平衡。</p>
+</li>
+<li><p><strong>silos中对性能至关重要的组件进行了分区，并且它们之间的工作是本地平衡的</strong>。这样，孤岛运行时可以充分利用所有可用的CPU内核，而不会造成孤岛瓶颈。这适用于所有本地资源：将工作分配给线程，套接字，调度责任，队列等。</p>
+</li>
+<li><p><strong>StreamQueueBalance</strong>平衡了从持久化队列中跨集群中各个孤岛提取事件的责任。</p>
+</li>
+</ol>
+<p>另请注意<strong>从广义上讲，平衡并不一定意味着失去局域性</strong>。一个可以保持平衡，并且仍然保持良好的位置。例如，当平衡意味着分片/分区时，您可以对某个逻辑任务进行分区，同时仍保持每个分区内的局部性。这适用于本地和分布式平衡。</p>
+<p>请参阅此演示文稿<a href="http://dotnet.github.io/orleans/Presentations/Balancing%20Techniques%20in%20Orleans.pptx">Orleans的平衡技术</a>更多细节。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/implementation/load_balancing.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

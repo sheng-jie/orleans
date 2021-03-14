@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Adventure | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Adventure | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="冒险">冒险</h1>
+
+<p>一个简单的多人文本冒险游戏，其灵感来自老式的、基于文本的冒险游戏。</p>
+<h3 id="说明书">说明书</h3>
+<ol>
+<li>在 Visual Studio 打开 OrleansAdventure.sln 项目。你可以 <a href="https://github.com/dotnet/orleans/tree/master/Samples/2.0/Adventure">在这里</a> 找到他。</li>
+<li>启动“AdventureSetup”项目。</li>
+<li>当AdventureSetup运行成功后，启动“AdventureClient”项目。</li>
+<li>然后系统会提示您在命令行中输入您的姓名。进入并开始游戏。</li>
+</ol>
+<h3 id="概述">概述</h3>
+<p>AdventureSetup程序从 AdventureConfig.txt 中读取游戏配置(&quot;地图&quot;)。</p>
+<p>它设置了一系列的“房间”，如森林、海滩、洞穴、空地等。这些位置连接到其他房间，以模拟游戏的位置和布局。该示例配置仅描述了少数位置。</p>
+<p>房间里可以放钥匙、剑等“东西”。</p>
+<p>AdventureClient程序设置您的播放器，并提供一个简单的基于文本的用户界面，允许您玩游戏。</p>
+<p>您可以使用简单的命令语言在房间中移动并与事物进行交互，例如说“go north”或“take brass key”。</p>
+<h3 id="为什么使用orleans">为什么使用Orleans？</h3>
+<p>Orleans允许游戏通过非常简单的C#代码来描述游戏，同时允许它扩展到大型多人游戏。为了使这个动机有意义，房间的迷宫需要非常大，并且需要同时支持大量玩家。使用Orleans的一个优点是，该服务可以应对增量而设计，以小规模运行它的开销并不显著，而且您可以确信，当需要时它将是可以扩展的。</p>
+<h3 id="它是如何建模的">它是如何建模的？</h3>
+<p>玩家和房间被建模为Grains。这些Grains使我们能够用每个Grains模型状态和功能来分发游戏。</p>
+<p>像密钥这样的东西被建模为“plain old objects”——它们实际上只是简单的不可变的数据结构，并且可以在房间里和玩家之间移动，所以它们不需要设计为Grains。</p>
+<h3 id="可能的改进">可能的改进</h3>
+<ol>
+<li>把地图弄得非常、非常大</li>
+<li>让铜钥匙打开一些东西</li>
+<li>允许玩家互相留言</li>
+<li>使食物和饮用水成为可能和有实际的作用。</li>
+</ol>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/tutorials_and_samples/Adventure.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

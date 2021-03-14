@@ -1,0 +1,217 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Server Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Server Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+
+<blockquote><p>[啊！注意!]如果要启动本地silos和本地客户端进行开发，请查看<a href="local_development_configuration.html">本地开发配置页</a></p>
+</blockquote>
+<h1 id="服务器配置">服务器配置</h1>
+<p>silos通过编程方式配置<code>silohostbuilder软件</code>以及一些补充选项类。Orleans的选项类遵循<a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options">ASP.NET选项</a>模式，可以通过文件、环境变量等加载。</p>
+<p>silos配置有几个关键方面：</p>
+<ul>
+<li>Orleans聚类信息</li>
+<li>群集提供程序</li>
+<li>用于silos到silos和客户端到silos通信的终结点</li>
+<li>应用程序部件</li>
+</ul>
+<p>这是一个silos配置的示例，它定义群集信息、使用azure群集并配置应用程序部分：</p>
+<pre><code class="lang-csharp">var silo = new SiloHostBuilder()
+    // Clustering information
+    .Configure&lt;ClusterOptions&gt;(options =&gt;
+    {
+        options.ClusterId = &quot;my-first-cluster&quot;;
+        options.ServiceId = &quot;AspNetSampleApp&quot;;
+    })
+    // Clustering provider
+    .UseAzureStorageClustering(options =&gt; options.ConnectionString = connectionString)
+    // Endpoints
+    .ConfigureEndpoints(siloPort: 11111, gatewayPort: 30000)
+    // Application parts: just reference one of the grain implementations that we use
+    .ConfigureApplicationParts(parts =&gt; parts.AddApplicationPart(typeof(ValueGrain).Assembly).WithReferences())
+    // Now create the silo!
+    .Build();
+</code></pre><p>让我们分解此示例中使用的步骤：</p>
+<h2 id="orleans聚类信息">Orleans聚类信息</h2>
+<pre><code class="lang-csharp">    [...]
+    // Clustering information
+    .Configure&lt;ClusterOptions&gt;(options =&gt;
+    {
+        options.ClusterId = &quot;my-first-cluster&quot;;
+        options.ServiceId = &quot;AspNetSampleApp&quot;;
+    })
+    [...]
+</code></pre><p>这里我们做两件事：</p>
+<ul>
+<li>设置<code>棒状的</code>到<code>“我的第一个群集”</code>：这是Orleans集群的唯一ID。使用此ID的所有客户端和silos都可以直接相互通信。你可以选择使用不同的<code>棒状的</code>不过，对于不同的部署。</li>
+<li>设置<code>服务ID</code>到<code>“aspnetsampleap”</code>：这是应用程序的唯一ID，某些提供程序(如持久化提供程序)将使用它。<strong>此ID应保持稳定，并且在部署期间不会更改</strong>是的。</li>
+</ul>
+<h2 id="群集提供程序">群集提供程序</h2>
+<pre><code class="lang-csharp">    [...]
+    // Clustering provider
+    .UseAzureStorageClustering(options =&gt; options.ConnectionString = connectionString)
+    [...]
+</code></pre><p>通常，在orleans上构建的服务部署在节点集群上，或者部署在专用硬件上，或者部署在azure中。为了进行开发和基本测试，可以在单节点配置中部署Orleans。当部署到一个节点集群时，orleans在内部实现了一组协议来发现和维护集群中orleans silo的成员关系，包括检测节点故障和自动重新配置。</p>
+<p>为了可靠地管理集群成员关系，orleans使用azure表、sql server或apache zookeeper来同步节点。</p>
+<p>在这个示例中，我们使用azure表作为成员资格提供程序。</p>
+<h2 id="端点">端点</h2>
+<pre><code class="lang-csharp">var silo = new SiloHostBuilder()
+    [...]
+    // Endpoints
+    .ConfigureEndpoints(siloPort: 11111, gatewayPort: 30000)
+    [...]
+</code></pre><p>Orleanssilos有两种典型的端点配置：</p>
+<ul>
+<li>silos到silos端点，用于同一集群中silos之间的通信</li>
+<li>客户端到silos端点(或网关)，用于在同一集群中的客户端和silos之间进行通信</li>
+</ul>
+<p>在示例中，我们使用helper方法<code>.配置终结点(siloport:11111，gatewayport:30000)</code>它将用于silos到silos通信的端口设置为<code>11111个</code>和网关的端口<code>30000个</code>是的。此方法将检测要侦听的接口。</p>
+<p>这种方法在大多数情况下应该足够了，但是如果需要的话，可以进一步自定义它。下面是如何将外部IP地址与某些端口转发一起使用的示例：</p>
+<pre><code class="lang-csharp">[...]
+.Configure&lt;EndpointOptions&gt;(options =&gt;
+{
+    // Port to use for Silo-to-Silo
+    options.SiloPort = 11111;
+    // Port to use for the gateway
+    options.GatewayPort = 30000;
+    // IP Address to advertise in the cluster
+    options.AdvertisedIPAddress = IPAddress.Parse(&quot;172.16.0.42&quot;);
+    // The socket used for silo-to-silo will bind to this endpoint
+    options.GatewayListeningEndpoint = new IPEndPoint(IPAddress.Any, 40000);
+    // The socket used by the gateway will bind to this endpoint
+    options.SiloListeningEndpoint = new IPEndPoint(IPAddress.Any, 50000);
+
+})
+[...]
+</code></pre><p>在内部，silos会监听<code>0.0.0.0:40000个</code>和<code>0.0.0.0:50000</code>，但在成员资格提供程序中发布的值将是<code>172.16.0.42:11111</code>和<code>172.16.0.42:30000</code>是的。</p>
+<h2 id="应用程序部件">应用程序部件</h2>
+<pre><code class="lang-csharp">    [...]
+    // Application parts: just reference one of the grain implementations that we use
+    .ConfigureApplicationParts(parts =&gt; parts.AddApplicationPart(typeof(ValueGrain).Assembly).WithReferences())
+    [...];
+</code></pre><p>虽然技术上不需要此步骤(如果未配置，Orleans将扫描当前文件夹中的所有程序集)，但鼓励开发人员对此进行配置。此步骤将帮助Orleans加载用户程序集和类型。这些组件称为应用程序部件。所有Grain、Grain接口和序列化器都是使用应用程序部件发现的。</p>
+<p>应用程序部件的配置使用<code>IApplicationPartsManager应用程序部件管理器</code>，可以使用<code>配置应用程序部件</code>上的扩展方法<code>IClientBuilder</code>和<code>IsiloHostBuilder</code>是的。这个<code>配置应用程序部件</code>方法接受委托，<code>操作&lt;iapplicationpartmanager&gt;</code>是的。</p>
+<p>上的以下扩展方法<code>IApplicationPartManager</code>支持常见用途：</p>
+<ul>
+<li><code>addapplicationpart(程序集)</code>使用此扩展方法可以添加单个程序集。</li>
+<li><code>AddFromAppdomain()</code>添加当前加载在<code>应用程序域</code>是的。</li>
+<li><code>AddFromApplicationBaseDirectory()</code>加载并添加当前基路径中的所有程序集(请参见<code>appdomain.basedirectory目录</code>)中。</li>
+</ul>
+<p>通过上述方法添加的程序集可以在其返回类型上使用以下扩展方法进行补充，<code>带程序集的IApplicationPartManager</code>：</p>
+<ul>
+<li><code>引用()</code>从添加的零件添加所有引用的部件。这将立即加载任何可传递引用的程序集。忽略程序集加载错误。</li>
+<li><code>使用代码生成()</code>为添加的部件生成支持代码并将其添加到部件管理器中。注意，这需要<code>Microsoft.Orleans.Orleanscodegenerator</code>要安装的包，通常称为运行时代码生成。</li>
+</ul>
+<p>类型发现要求提供的应用程序部分包含特定属性。添加生成时代码生成包(<code>Microsoft.Orleans.CodeGenerator.MSBuild</code>或<code>Microsoft.Orleans.OrleansCodeGenerator.Build</code>)对于包含Grain、Grain接口或序列化程序的每个项目，建议使用确保这些属性存在的方法。生成生成时代码只支持C。对于F、Visual Basic和其他.NET语言，可以在配置期间通过<code>使用代码生成()</code>上述方法。有关代码生成的更多信息，请参见<a href="../../grains/code_generation.html">相应部分</a>是的。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/configuration_guide/server_configuration.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>&#21457;&#26126;&#36718;&#23376; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="&#21457;&#26126;&#36718;&#23376; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="发明轮子">发明轮子</h1>
+
+<p><a href="https://github.com/jdom">朱利安·多明格斯</a>2017年4月12日下午2:49:11</p>
+<hr>
+<p>微软Orleans项目开始于许多年前的微软研究，当时连任务类都不存在。随着项目的成熟，需要许多非核心抽象和功能来支持其增长。这些抽象在.NET中并不作为标准存在，.NETOSS还处于初级阶段。这些方面的例子包括横切关注点，如日志记录、配置和依赖注入。</p>
+<p>随着时间的推移，出现了一些常见的抽象和模式，并且达到了只采用它们就有意义的程度。原因有很多：</p>
+<ul>
+<li>开发人员已经习惯了标准的模式和抽象，所以新手不需要为了使用Orleans而学习这些非核心抽象。</li>
+<li>标准抽象的采用程度非常高，几乎每一个第三方组件都与该抽象相关。另一方面，今天它要求Orleans社区为许多第三方组件构建集成包(即：使用Serilog、log4net或push events to ETW)，因为这些组件的所有者只会为公共抽象创建集成包，而不是为Orleans或任何其他非标准抽象创建集成包。</li>
+<li>我们创建了定制的抽象来完成这项工作，但是在这之后我们并没有过多地关注可用性，因为它只是进入了维护模式。有时我们发现这些抽象不够好，所以我们必须做出突破性的改变(例如，我们向非静态客户端和silos的迁移需要非静态日志抽象)。</li>
+<li>这些标准的抽象是经过深思熟虑来完成特定工作的，通常非常灵活，使用简单，并且有很多文档。我们只是站在他们的肩膀上。</li>
+<li>删除对Orleans核心功能不重要的代码总是很好的。</li>
+</ul>
+<p><img src="media/2017/04/reinvent-the-wheel.jpg" alt="Reinventing the wheel leads to unnecessary work"></p>
+<p>我们已经开始使用<a href="https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection">Microsoft.Extensions.DependencyInjection</a>支持DI的抽象，在很多地方我们不再使用穷人的对象激活(和两步初始化)方法。</p>
+<p>随着我们的进一步发展，我们计划对一些定制抽象进行抨击，转而使用标准抽象。特别是我们已经在考虑两个即将到来的变化：</p>
+<ul>
+<li>将日志抽象迁移到<a href="https://www.nuget.org/packages/Microsoft.Extensions.Logging">Microsoft.Extensions.Logging</a>.</li>
+<li>修改我们的配置和启动模式，使之与ASP.NET核心的。看<a href="https://github.com/dotnet/orleans/issues/2936">dotnet/Orleans#2936</a>对于这个动作的初步设计。</li>
+</ul>
+<p>和往常一样，我们会尽量将破坏性更改保持在最低限度，但我们不会严格防止破坏更改。有时，我们使我们的新版本与源代码兼容(这意味着开发人员不能简单地在Orleans程序集上使用绑定重定向，但是重新构建他们的代码可能仍然可以编译)，或者需要一些最小的修复。有时，突破性的改变*更大的*如果它们只会影响到一个小特性或一些通常不会在用户的整个代码库中扩展的东西(例如不影响Grain代码的扩展点)。</p>
+<p>而且，现在似乎是一个以全新的思维看待这些抽象的恰当时机，因为这正是.NET社区在展望以下事情时所做的ASP.NET和.NET核心。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/blog/de-inventing-the-wheel.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

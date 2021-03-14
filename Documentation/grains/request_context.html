@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Request Context | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Request Context | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="请求上下文">请求上下文</h1>
+
+<p>RequestContext是一个Orleans特性，它允许应用程序元数据(如跟踪ID)与请求一起流动。应用程序元数据可以添加到客户端上；它将与Orleans请求一起流向接收Grain。</p>
+<p>该特性由Orleans名称空间中的一个公共静态类RequestContext实现。此类公开了两个简单方法：</p>
+<p><strong>void Set(string key, object value)</strong>用于在请求上下文中存储值。该值可以是任何可序列化类型。<strong>Object Get(string key)</strong>用于从当前请求上下文中检索值。</p>
+<p>RequestContext的后台存储是线程静态的。当一个线程(无论是客户端还是在Orleans内)发送请求时，发送线程的RequestContext的内容都包含在请求的Orleans消息中；当grain代码接收到请求时，可以从本地RequestContext访问该元数据。如果grain代码没有修改RequestContext，那么它请求的任何grain都将接收相同的元数据，依此类推。</p>
+<p>当您使用StartNew或ContinueWith计划未来的计算时，也会维护应用程序元数据；在这两种情况下，后续的任务将使用与调度代码在调度计算时所具有的相同元数据执行(即，系统复制当前元数据并将其传递给后续任务，因此，调用StartNew或ContinueWith之后的更改将不会被后续任务看到)。</p>
+<p>请注意，应用程序元数据不会随响应返回；也就是说，由于接收到响应而运行的代码，无论是在ContinueWith 后续任务中，还是在调用Wait或GetValue之后，仍将在原始请求设置的当前上下文中运行。</p>
+<p>例如，要将客户端中的跟踪ID设置为新的GUID，只需调用：</p>
+<pre><code class="lang-csharp">RequestContext.Set(&quot;TraceId&quot;, new Guid());
+</code></pre><p>在grain代码(或在Orleans内运行的调度程序线程上的其他代码)中，可以使用原始客户端请求的跟踪ID，例如，在编写日志时：</p>
+<pre><code class="lang-csharp">Logger.Info(&quot;Currently processing external request {0}&quot;, RequestContext.Get(&quot;TraceId&quot;));
+</code></pre><p>虽然任何可序列化的对象都可以作为应用程序元数据发送，但值得一提的是，大型或复杂的对象可能会给消息序列化时间增加显著的开销。因此，建议使用简单类型(字符串、guid或数字类型)。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/request_context.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

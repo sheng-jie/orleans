@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>List of Options Classes | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="List of Options Classes | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="选项类列表">选项类列表</h1>
+
+<p>用于配置Orleans的所有选项类都应该在<code>Orleans。配置</code>命名空间。他们中的许多人在<code>Orleans。接待</code>命名空间。</p>
+<h2 id="iclientbuilder和isilohostbuilder的通用核心选项">iclientbuilder和isilohostbuilder的通用核心选项</h2>
+<table>
+<thead>
+<tr>
+<th>选项类型</th>
+<th>用于</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>离合器选项</code></td>
+<td>设置<code>棒状的</code>以及<code>服务ID</code></td>
+</tr>
+<tr>
+<td><code>网络选项</code></td>
+<td>为套接字和打开的连接设置超时值</td>
+</tr>
+<tr>
+<td><code>序列化提供程序选项</code></td>
+<td>设置序列化提供程序</td>
+</tr>
+<tr>
+<td><code>类型管理选项</code></td>
+<td>设置类型映射的刷新周期(请参阅异构silos和版本控制)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="iclientbuilder特定选项">iclientbuilder特定选项</h2>
+<table>
+<thead>
+<tr>
+<th>选项类型</th>
+<th>用于</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>客户信息选项</code></td>
+<td>设置要保持打开的连接数，并指定要使用的网络接口</td>
+</tr>
+<tr>
+<td><code>客户统计选项</code></td>
+<td>设置与统计输出相关的各种设置</td>
+</tr>
+<tr>
+<td><code>网关选项</code></td>
+<td>设置可用网关列表的刷新周期</td>
+</tr>
+<tr>
+<td><code>StaticGatewayListProviderOptions</code></td>
+<td>设置客户端用于连接到群集的uri</td>
+</tr>
+</tbody>
+</table>
+<h2 id="isilohostbuilder特定选项">IsiloHostBuilder特定选项</h2>
+<table>
+<thead>
+<tr>
+<th>选项类型</th>
+<th>用于</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ClusterMembership选项</code></td>
+<td>群集成员身份的设置</td>
+</tr>
+<tr>
+<td><code>一致性选项</code></td>
+<td>一致散列算法的配置选项，用于平衡集群中的资源分配。</td>
+</tr>
+<tr>
+<td><code>端点选项</code></td>
+<td>设置silos终结点选项</td>
+</tr>
+<tr>
+<td><code>GrainCollection选项</code></td>
+<td>Grains垃圾收集选项</td>
+</tr>
+<tr>
+<td><code>grains转化选项</code></td>
+<td>管理异构部署中的Grain实现选择</td>
+</tr>
+<tr>
+<td><code>加载选项</code></td>
+<td>减载配置设置。必须有<code>ihostenvironmentstatistics</code>例如通过<code>builder.UsePerfCounterEnvironmentStatistics()</code>(仅限Windows)用于<code>减载</code>发挥作用。</td>
+</tr>
+<tr>
+<td><code>多色光</code></td>
+<td>配置多群集支持的选项</td>
+</tr>
+<tr>
+<td><code>性能调整选项</code></td>
+<td>性能调整选项(网络、线程数)</td>
+</tr>
+<tr>
+<td><code>进程Exthand选项</code></td>
+<td>在进程出口配置silos行为</td>
+</tr>
+<tr>
+<td><code>计划选项</code></td>
+<td>配置计划程序行为</td>
+</tr>
+<tr>
+<td><code>Silomessagingoptions</code></td>
+<td>配置与silos相关的全局消息传递选项。</td>
+</tr>
+<tr>
+<td><code>silos选项</code></td>
+<td>设置silos的名称</td>
+</tr>
+<tr>
+<td><code>silos统计选项</code></td>
+<td>设置与统计输出相关的各种设置</td>
+</tr>
+<tr>
+<td><code>遥测选项</code></td>
+<td>设置遥测用户设置</td>
+</tr>
+</tbody>
+</table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/configuration_guide/list_of_options_classes.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Orleans&#21644;&#31859;&#22810;&#37324; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Orleans&#21644;&#31859;&#22810;&#37324; | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleans和米多里">Orleans和米多里</h1>
+
+<p><a href="https://github.com/sergeybykov">贝科夫</a>2016年12月11日下午10:56:13</p>
+<hr>
+<p>读乔·达菲的史诗<a href="http://joeduffyblog.com/2016/11/30/15-years-of-concurrency/">共事15年</a>波斯特带来了Orleans早期的一些往事。它甚至迫使我挖掘并尝试编译2009年的代码。这是一个有趣的练习。</p>
+<p>当我们刚开始Orleans项目时，我们会定期与Midori人会面和交谈。这是很自然的，不仅是因为问题空间有一些明显的重叠，而且因为孕育Orleans的吉姆·拉鲁斯是<a href="https://www.microsoft.com/en-us/research/project/singularity/">奇点</a>米多里的起点。我们立即借用了Midori的promises库，因为我们想使用基于promise的并发来安全执行和高效的RPC。我们没有费心尝试集成代码，只是简单地获取了二进制文件并将它们签入到我们的源代码树中。我们处于早期原型阶段，还不必担心长期性。</p>
+<p>当时，grains接口是这样的：</p>
+<pre><code class="lang-csharp">[Eventual]
+public interface ISimpleGrain : IEventual
+{
+    [Eventual]
+    PVoid SetA(int a);
+
+    [Eventual]
+    PVoid SetB(int b);
+
+    [Eventual]
+    PInt32 GetAxB();
+}
+</code></pre><p><code>PVoid</code>和<code>针脚32</code>在道德上等同于<a href="https://msdn.microsoft.com/en-us/library/dd537609(v=vs.110).aspx">任务和任务\&lt;int&gt;在第三方物流</a>. 与Tasks不同，它们有许多静态方法，其中一个更简单的重载使用两个lambda：一个用于成功案例，另一个用于处理抛出的异常：</p>
+<pre><code class="lang-csharp">public static PVoid When(PVoid target, Action fn, Action&lt;Exception&gt; catchFn);
+</code></pre><p>一个简单的纹理方法看起来像：</p>
+<pre><code class="lang-csharp">public PVoid SetA(int a)
+{
+    this.a = a;
+    return PVoid.DONE;
+}
+</code></pre><p>你可以在这里看到任务完成了。完成了来自。一个简单的单元测试方法看起来相当复杂：</p>
+<pre><code class="lang-csharp">[TestMethod]
+public void SimpleGrainDataFlow()
+{
+    result = new ResultHandle();
+    Runner.Enqueue(new SimpleTodo(() =&gt;
+    {
+
+       Promise&lt;SimpleGrainReference&gt; clientPromise = SimpleGrainReference.GetReference(&quot;foo&quot;);
+       PVoid.When(clientPromise,
+           reference =&gt;
+           {
+                grain = reference;
+                Assert.IsNotNull(grain);
+                PVoid setPromise = grain.SetA(3);
+                PVoid.When(setPromise,
+                    () =&gt;
+                    {
+                        setPromise = grain.SetB(4);
+                        PVoid.When(setPromise,
+                            () =&gt;
+                            {
+                                PInt32 intPromise = grain.GetAxB();
+                                PVoid.When&lt;Int32&gt;(intPromise,
+                                    x =&gt;
+                                    {
+                                        result.Result = x;
+                                        result.Done = true;
+                                    },
+                                    exc =&gt;
+                                    {
+                                        Assert.Fail(&quot;Exception thrown by GetAxB: &quot; + exc.Message);
+                                        return PVoid.DONE;
+                                    });
+                            },
+                            exc =&gt;
+                            {
+                                Assert.Fail(&quot;Exception thrown by SetB: &quot; + exc.Message);
+                                return PVoid.DONE;
+                            });
+                    },
+                    exc =&gt;
+                    {
+                        Assert.Fail(&quot;Exception thrown by SetA: &quot; + exc.Message);
+                        return PVoid.DONE;
+                    });
+            },
+            exc =&gt;
+            {
+                result.Exception =  exc;
+                result.Done = true;
+                return PVoid.DONE;
+            });
+    })); 
+
+    Assert.IsTrue(result.WaitForFinished(timeout));
+    Assert.IsNotNull(result.Result);
+    Assert.AreEqual(12, result.Result);
+}
+</code></pre><p>嵌套when是组织数据流执行管道所必需的。<code>跑步者</code>是<code>外国投资者</code>，这是注入异步任务的方法之一(<code>托多</code>s) 变成一个<code>托多经理</code>. <code>托多经理</code>是一个单线程执行管理器，也叫增值税，<a href="http://www.erights.org/elib/concurrency/vat.html">来自E语言的概念</a>. 增值税执行系统的初始化是几行代码：</p>
+<pre><code class="lang-csharp">todoManager = new TodoManager();
+
+Thread t = new Thread(todoManager.Run);
+t.Name = &quot;Unit test TodoManager&quot;;
+t.Start();
+
+runner = new ForeignTodoRunner(todoManager);
+</code></pre><p>在一个silos中，我们还使用vats来管理Grains转向的单线程执行。作为silos启动的一部分，我们将其中的N个设置为与可用CPU核心的数量相匹配：</p>
+<pre><code class="lang-csharp">for (int i = 0; i &lt; nTodoManagers; i++)
+{
+    todoManagers[i] = new TodoManager();
+
+    for (int j = 0; j &lt; runnerFactor; j++)
+        todoRunners[i \* runnerFactor + j] = new ForeignTodoRunner(todoManagers[i]);
+
+    Thread t = new Thread(todoManagers[i].Run);
+    t.Name = String.Format(&quot;TodoManager: {0}&quot;, i);
+    t.Start();
+}
+</code></pre><p>当时我们和迪恩·特里布尔争论说，在我们看来，在承诺上使用静态方法对大多数开发人员来说太不方便了。我们希望它们成为实例方法。几个月后，我们推出了自己的承诺AsyncCompletion和AsyncValue<t>. 他们是任务和任务的包装<t>和had实例方法。这将代码压缩了不少：<p>
+<pre><code class="lang-csharp">[TestMethod]
+public void SimpleGrainDataFlow()
+{
+    ResultHandle result = new ResultHandle(); 
+    SimpleGrainReference grain = SimpleGrainReference.GetReference(&quot;foo&quot;);
+
+    AsyncCompletion setPromise = grain.SetA(3);
+    setPromise.ContinueWith(() =&gt;
+    {
+        setPromise = grain.SetB(4);
+        setPromise.ContinueWith(
+        () =&gt;
+        {
+            AsyncValue&lt;int&gt; intPromise = grain.GetAxB();
+            intPromise.ContinueWith(
+            x =&gt;
+            {
+                result.Result = x;
+                result.Done = true;
+            });
+        });
+    });
+
+    Assert.IsTrue(result.WaitForFinished(timeout));
+    Assert.IsNotNull(result.Result);
+    Assert.AreEqual(12, result.Result);
+}
+</code></pre><p>最初，我们允许grain方法是同步的，并将grain引用作为它们的异步代理。</p>
+<pre><code class="lang-csharp">public class SimpleGrain : GrainBase
+{
+    public void SetA(int a)
+
+    public void SetB(int b)
+
+    public int GetAxB()
+}
+
+public class SimpleGrainReference : GrainReference
+{
+    public AsyncCompletion SetA(int a)
+
+    public AsyncCompletion SetB(int b)
+
+    public AsyncValue&lt;int&gt; GetAxB()
+}
+</code></pre><p>我们很快意识到这是个坏主意，于是改用Grains的方法退货<code>异步完成</code>/<code>异步值&lt;T&gt;</code>. 我们反复考虑，最终放弃了一些其他的坏主意。我们支持Grains类的属性。异步设置器是一个问题，一般来说，异步属性具有相当的误导性，与显式getter方法相比没有任何好处。我们最初支持Grains上的.NET事件。由于.NET中+=和-=操作基本上是同步的，所以不得不废弃它们。</p>
+<p>为什么我们不简单地使用<code>Task</code>/<code>Task&lt;T&gt;</code>而不是<code>异步完成</code>/<code>异步值&lt;T&gt;</code>?</p>
+<p>为了保证单线程执行，我们需要拦截每个调度和连续调用。<code>Task</code>是一个密封类，因此我们无法将其子类化以重写所需的键方法。我们也没有一个定制的TPL调度程序。</p>
+<p>在我们转而使用我们自己的承诺之后，我们失去了使用Midori的一些高级功能的机会。例如，他们支持三方承诺切换协议。如果节点A调用了节点B并持有该调用的允诺，但作为处理请求的一部分，B向C发出了对最终值的调用，则B可以传递对A持有的允诺的引用，这样C就可以直接响应A，而不是额外跳回B。在性能和复杂性之间的折衷中，我们选择优先考虑简单性。</p>
+<p>我们从与Midori人交谈中得到的另一个教训是，在他们的代码库中，一些最难跟踪的bug的来源是交错执行。尽管vat只有一个线程来执行所有的turns(在屈服点之间同步的代码段)，但它以任意顺序执行属于不同请求的turns是完全合法的。</p>
+<p>假设您的组件正在处理一个请求，并且需要调用另一个组件，例如，在其中进行IO调用。您发出那个IO调用，收到完成或返回值的承诺，并使用<code>什么时候？</code>或<code>继续</code>调用。这里的陷阱是，当IO调用完成并且计划的延续开始执行时，很容易假设组件的状态自发出IO调用以来没有改变。事实上，组件可能在异步等待IO调用时接收并处理了许多其他请求，而处理这些请求可能会以不明显的方式改变组件的状态。Midori团队非常资深。当时，他们中的大多数是校长和合伙人级别的工程师和建筑师。我们想知道，如果穿插对这种才干和经验的人来说是如此的危险，那对我们这样的凡人来说肯定更糟。这导致后来决定让Orleans的Grains在默认情况下不可再入。</p>
+<p>大约在同一时间，Niklas Gustafsson参与了这个项目<a href="https://channel9.msdn.com/shows/Going+Deep/Maestro-A-Managed-Domain-Specific-Language-For-Concurrent-Programming/">大师</a>后来改名为<a href="https://web.archive.org/web/20090511155406/http:/msdn.microsoft.com/en-us/devlabs/dd795202.aspx">阿克苏姆</a>. 我们在Axum上有一个实习生原型(早期的Orleans应用程序之一)来比较编程体验和2009年春季基于promise的应用程序。我们得出的结论是，对于开发人员来说，promises模型更容易实现。与此同时，尼格拉斯提出了一个建议和一个原型，在他说服了安德斯·赫兹伯格和其他人之后，最终成为了<code>异步</code>/awaitC中的关键字#. 到现在，它传播到了更多的语言。</p>
+<p>在发布了带有async和await的.net4.5之后，我们最终放弃了<code>异步完成</code>/<code>异步值&lt;T&gt;</code>赞成<code>Task</code>/<code>Task&lt;T&gt;</code>利用等待的力量。这是另一个折衷方案，它让我们重写了几次调度程序(不是一个小任务)，并放弃了我们承诺中的一些好特性。例如，在我们可以轻松检测到grain代码是否试图通过调用<code>结果</code>或<code>等等()</code>在一个未解决的承诺上<code>InvalidOperationException异常</code>表示在silos的协作多任务环境中不允许这样做。我们不能再这样了。但我们获得了今天更干净的编程模型：</p>
+<pre><code class="lang-csharp">public interface ISimpleGrain : IGrainWithIntegerKey
+{
+    Task SetA(int a);
+
+    Task SetB(int b);
+
+    Task&lt;int&gt; GetAxB();
+}
+
+[Fact, TestCategory(&quot;BVT&quot;), TestCategory(&quot;Functional&quot;)]
+public async Task SimpleGrainDataFlow()
+{
+    var grain = GrainFactory.GetGrain&lt;ISimpleGrain&gt;(GetRandomGrainId());
+
+    Task setAPromise = grain.SetA(3);
+    Task setBPromise = grain.SetB(4);
+
+    await Task.WhenAll(setAPromise, setBPromise);
+
+    var x = await grain.GetAxB();
+    Assert.Equal(12, x);
+}
+</code></pre><p>Midori是一个非常有意义的有趣实验，试图构建一个具有异步性和自上而下隔离的“安全构建”操作系统。从成功、失败和错失的机会来判断这些努力总是很困难的。有一点很清楚，Midori确实影响了Orleans关于异步和并发的早期思考和设计，并帮助引导了它的初始原型。</p>
+</t></t></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/blog/orleans-and-midori.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

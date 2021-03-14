@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="配置">配置</h1>
+
+<h2 id="配置项目引用">配置项目引用</h2>
+<h3 id="grains接口">grains接口</h3>
+<p>和以前一样，接口只依赖于<code>微软.orleans.core</code>包，因为grain接口独立于实现。</p>
+<h3 id="grains实现">Grains实现</h3>
+<p>日志需要从<code>行程&lt;s，e&gt;</code>或<code>日志记录&lt;s&gt;</code>，定义见<code>Microsoft.Orleans.EventSourcing</code>包裹。</p>
+<h3 id="日志一致性提供程序">日志一致性提供程序</h3>
+<p>我们目前包括三个日志一致性提供程序(用于状态存储、日志存储和自定义存储)。这三个都包含在<code>Microsoft.Orleans.EventSourcing</code>包装也一样。因此，所有被记录的Grains都已经可以获得这些。有关这些提供程序的功能和区别的说明，请参见<a href="log_consistency_providers.html">包括日志一致性提供程序</a>.</p>
+<h2 id="群集配置">群集配置</h2>
+<p>日志一致性提供程序的配置与任何其他Orleans提供程序一样。例如，要包含所有三个提供者(当然，您可能不需要全部三个提供者)，请将此添加到<code>&lt;Globals&gt;</code>配置文件的元素：</p>
+<pre><code class="lang-xml">&lt;LogConsistencyProviders&gt;
+  &lt;Provider Type=&quot;Orleans.EventSourcing.StateStorage.LogConsistencyProvider&quot; Name=&quot;StateStorage&quot; /&gt;
+  &lt;Provider Type=&quot;Orleans.EventSourcing.LogStorage.LogConsistencyProvider&quot; Name=&quot;LogStorage&quot; /&gt;
+  &lt;Provider Type=&quot;Orleans.EventSourcing.CustomStorage.LogConsistencyProvider&quot; Name=&quot;CustomStorage&quot; /&gt;
+&lt;/LogConsistencyProviders&gt;
+</code></pre><p>同样可以通过编程实现。移动到2.0.0稳定，客户端配置和集群配置不再存在！它现在已经被一个clientbuilder和一个silobuilder所取代(注意没有集群构建器)。</p>
+<pre><code class="lang-csharp">builder.AddLogStorageBasedLogConsistencyProvider(&quot;LogStorage&quot;)
+</code></pre><h2 id="grains类属性">Grains类属性</h2>
+<p>每个记录的Grains类必须有<code>日志一致性提供程序</code>属性指定日志一致性提供程序。一些提供商还要求<code>存储提供程序</code>属性。如：[存储提供程序(providername=“orleanslocalstorage”)][logconsistencyprovider(providername = &quot;logstorage&quot;)]公共类事件源dbankAccountGrain:JournaledGrain<bankaccountstate>，IEventSourceBankAccountGrain{}<p>
+<p>所以这里“orleanslocalstorage”被用来存储grain状态，其中“logstorage”是eventsourcing事件的内存存储提供程序。</p>
+<h3 id="logconsistencyprovider属性">LogConsistencyProvider属性</h3>
+<p>要指定日志一致性提供程序，请添加<code>[日志一致性提供程序(providername=…)]</code>属性，并提供由群集配置配置配置的提供程序的名称。例如：</p>
+<pre><code class="lang-csharp">[LogConsistencyProvider(ProviderName = &quot;CustomStorage&quot;)]
+public class ChatGrain : JournaledGrain&lt;XDocument, IChatEvent&gt;, IChatGrain, ICustomStorage { ... }
+</code></pre><h3 id="storageprovider属性">StorageProvider属性</h3>
+<p>一些日志一致性提供程序(包括<code>日志存储</code>和<code>状态存储</code>)使用标准的StorageProvider与存储通信。此提供程序使用单独的<code>存储提供程序</code>属性，如下所示：</p>
+<pre><code class="lang-csharp">[LogConsistencyProvider(ProviderName = &quot;LogStorage&quot;)]
+[StorageProvider(ProviderName = &quot;AzureBlobStorage&quot;)]
+public class ChatGrain : JournaledGrain&lt;XDocument, IChatEvent&gt;, IChatGrain { ... }
+</code></pre><h2 id="默认提供程序">默认提供程序</h2>
+<p>可以省略<code>日志一致性提供程序</code>和/或<code>存储提供程序</code>属性，如果在配置中指定了默认值。这是通过使用特殊的名称来完成的<code>违约</code>各自的供应商。例如：</p>
+<pre><code class="lang-xml">&lt;LogConsistencyProviders&gt;
+  &lt;Provider Type=&quot;Orleans.EventSourcing.LogStorage.LogConsistencyProvider&quot; Name=&quot;Default&quot; /&gt;
+&lt;/LogConsistencyProviders&gt;
+&lt;StorageProviders&gt;
+  &lt;Provider Type=&quot;Orleans.Storage.MemoryStorage&quot; Name=&quot;Default&quot; /&gt;
+&lt;/StorageProviders&gt;
+</code></pre></bankaccountstate></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/event_sourcing/event_sourcing_configuration.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

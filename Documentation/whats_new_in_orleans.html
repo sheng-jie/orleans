@@ -1,0 +1,390 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>What's new in Orleans | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="What's new in Orleans | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="../1.5/Documentation/toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="orleans有什么新鲜事">Orleans有什么新鲜事？</h1>
+
+<h2 id="v232版httpsgithubcomdotnetorleansreleasestagv2322019年5月9日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.3.2">v2.3.2版</a>2019年5月9日</h2>
+<p>三个错误修复。</p>
+<h2 id="v231版httpsgithubcomdotnetorleansreleasestagv2312019年4月26日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.3.1">v2.3.1版</a>2019年4月26日</h2>
+<p>一些改进，一个bug修复，以及批处理流API。</p>
+<h2 id="v230版httpsgithubcomdotnetorleansreleasestagv2302019年3月20日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.3.0">v2.3.0版</a>2019年3月20日</h2>
+<ul>
+<li>主要改进<ul>
+<li>支持ASP.NET核心托管API(Microsoft.Extensions.Hosting). 感谢@galvesribeiro&#65281;</li>
+<li>将命名选项的自定义实现替换为Microsoft.Extensions.Options.</li>
+<li>EventHub流提供程序已升级到EvenHub 2.2.1，并与3.0.0兼容。</li>
+<li>集群成员关系表中的旧死条目现在会自动清理，这对于托管使用新IP端点来重新启动silos的环境很有帮助。</li>
+<li>默认情况下，允许在思洛进程中有效托管前端代码的托管客户端。</li>
+<li>支持<code>IHostEnvironmentStatistics</code>在Linux上，它支持CPU和内存指标以及负载削减。感谢@martinothamar&#65281;</li>
+</ul>
+</li>
+</ul>
+<h2 id="v230-rc2版httpsgithubcomdotnetorleansreleasestagv230-rc22019年3月13日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.3.0-rc2">v2.3.0-rc2版</a>2019年3月13日</h2>
+<p><code>重构流批处理行为以支持批处理消费。</code>(5425)是唯一的变化。虽然从技术上讲，由于批处理流API的更改，它正在崩溃，但它不应该破坏任何正在工作的应用程序代码，因为批处理功能以前没有完全连接。在有线协议或持久化方面没有突破性的变化。此版本与2.x版本向后兼容。</p>
+<h2 id="v230-rc1版httpsgithubcomdotnetorleansreleasestagv230-rc12019年3月5日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.3.0-rc1">v2.3.0-rc1版</a>2019年3月5日</h2>
+<ul>
+<li>主要改进<ul>
+<li>支持ASP.NET核心托管API(Microsoft.Extensions.Hosting).</li>
+<li>将命名选项的自定义实现替换为Microsoft.Extensions.Options.</li>
+<li>EventHub流提供程序已升级到EvenHub 2.2.1，并与3.0.0兼容。</li>
+<li>集群成员关系表中的旧死条目现在会自动清理，这对于托管使用新IP端点来重新启动silos的环境很有帮助。</li>
+<li>默认情况下，允许在思洛进程中有效托管前端代码的托管客户端。</li>
+</ul>
+</li>
+</ul>
+<h2 id="157版httpsgithubcomdotnetorleansreleasestagv1572019年2月28日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.7">1.5.7版</a>2019年2月28日</h2>
+<p>从v2.x后移植的两个修复程序</p>
+<ul>
+<li>不间断的错误修复<ul>
+<li>修复了多群集支持(#3974)</li>
+<li>添加GSI缓存维护和测试(#5184)</li>
+</ul>
+</li>
+</ul>
+<h2 id="220版httpsgithubcomdotnetorleansreleasestagv2202018年12月13日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.2.0">2.2.0版</a>2018年12月13日</h2>
+<p>这个版本主要是为了支持ACID跨Grain事务，以达到生产就绪的质量。</p>
+<p>此版本不包含任何重大更改，并且与2.0.*版本向后兼容，允许对正在运行的群集进行就地升级。</p>
+<h2 id="v210版httpsgithubcomdotnetorleansreleasestagv2102018年9月28日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.1.0">v2.1.0版</a>2018年9月28日</h2>
+<ul>
+<li>重大变化<ul>
+<li>新建计划程序(<a href="https://github.com/dotnet/orleans/pull/3792">#3792个</a>)</li>
+<li>托管客户端(<a href="https://github.com/dotnet/orleans/pull/3362">#3362个</a>)</li>
+<li>分布式事务管理器(<a href="https://github.com/dotnet/orleans/pull/3820">#3820个</a>, <a href="https://github.com/dotnet/orleans/pull/4502">#4502个</a>, <a href="https://github.com/dotnet/orleans/pull/4538">#4538个</a>, <a href="https://github.com/dotnet/orleans/pull/4566">#4566个</a>, <a href="https://github.com/dotnet/orleans/pull/4568">#4568</a>, <a href="https://github.com/dotnet/orleans/pull/4591">#4591</a>, <a href="https://github.com/dotnet/orleans/pull/4599">#4599</a>, <a href="https://github.com/dotnet/orleans/pull/4613">#4613</a>, <a href="https://github.com/dotnet/orleans/pull/4609">#4609</a>, <a href="https://github.com/dotnet/orleans/pull/4616">#4616</a>, <a href="https://github.com/dotnet/orleans/pull/4608">#4608</a>, <a href="https://github.com/dotnet/orleans/pull/4628">#4628</a>, <a href="https://github.com/dotnet/orleans/pull/4638">#4638</a>, <a href="https://github.com/dotnet/orleans/pull/4685">#4685</a>, <a href="https://github.com/dotnet/orleans/pull/4714">#4714</a>, <a href="https://github.com/dotnet/orleans/pull/4739">#4739</a>, <a href="https://github.com/dotnet/orleans/pull/4768">#4768</a>, <a href="https://github.com/dotnet/orleans/pull/4799">#4799</a>, <a href="https://github.com/dotnet/orleans/pull/4781">#4781</a>, <a href="https://github.com/dotnet/orleans/pull/4810">#4810个</a>, <a href="https://github.com/dotnet/orleans/pull/4820">#4820个</a>, <a href="https://github.com/dotnet/orleans/pull/4838">#4838个</a>, <a href="https://github.com/dotnet/orleans/pull/4831">#4831个</a>, <a href="https://github.com/dotnet/orleans/pull/4871">#4871个</a>, <a href="https://github.com/dotnet/orleans/pull/4887">#4887个</a>)</li>
+<li>新代码生成器(<a href="https://github.com/dotnet/orleans/pull/4934">#4934个</a>, <a href="https://github.com/dotnet/orleans/pull/5010">#5010号</a>, <a href="https://github.com/dotnet/orleans/pull/5011">#5011号</a>)</li>
+<li>支持交易中的协调转移(<a href="https://github.com/dotnet/orleans/pull/4860">#4860个</a>, <a href="https://github.com/dotnet/orleans/pull/4894">#4894个</a>, <a href="https://github.com/dotnet/orleans/pull/4949">#4949个</a>, <a href="https://github.com/dotnet/orleans/pull/5026">#5026个</a>, <a href="https://github.com/dotnet/orleans/pull/5024">＃5024</a>)</li>
+</ul>
+</li>
+</ul>
+<h2 id="v156httpsgithubcomdotnetorleansreleasestagv1562018年9月27日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.6">v1.5.6</a>2018年9月27日</h2>
+<p>自1.5.5版以来的改进和错误修复。</p>
+<ul>
+<li>不间断的改进<ul>
+<li>使SocketManager中的MaxSockets可配置<a href="https://github.com/dotnet/orleans/pull/5033">＃5033</a>。</li>
+</ul>
+</li>
+</ul>
+<h2 id="v210-rc2httpsgithubcomdotnetorleansreleasestagv210-rc22018年9月21日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.1.0-rc2">v2.1.0-rc2</a>2018年9月21日</h2>
+<ul>
+<li>主要变化<ul>
+<li>新代码生成器(<a href="https://github.com/dotnet/orleans/pull/4934">＃4934</a>，<a href="https://github.com/dotnet/orleans/pull/5010">＃5010</a>，<a href="https://github.com/dotnet/orleans/pull/5011">＃5011</a>)。</li>
+</ul>
+</li>
+</ul>
+<h2 id="v210-rc1httpsgithubcomdotnetorleansreleasestagv210-rc12018年9月14日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.1.0-rc1">v2.1.0-rc1</a>2018年9月14日</h2>
+<ul>
+<li>主要变化<ul>
+<li>交易(beta2)(<a href="https://github.com/dotnet/orleans/pull/4851">＃4851</a>，<a href="https://github.com/dotnet/orleans/pull/4923">＃4923</a>，<a href="https://github.com/dotnet/orleans/pull/4951">＃4951</a>，<a href="https://github.com/dotnet/orleans/pull/4950">＃4950</a>，<a href="https://github.com/dotnet/orleans/pull/4953">＃4953</a>)</li>
+<li>支持交易中的协调转移(<a href="https://github.com/dotnet/orleans/pull/4860">＃4860</a>，<a href="https://github.com/dotnet/orleans/pull/4894">＃4894</a>，<a href="https://github.com/dotnet/orleans/pull/4949">＃4949</a>)</li>
+</ul>
+</li>
+</ul>
+<h2 id="v155httpsgithubcomdotnetorleansreleasestagv1552018年9月7日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.5">v1.5.5</a>2018年9月7日</h2>
+<p>自1.5.4版以来的改进和错误修复。</p>
+<ul>
+<li><p>不间断的错误修复</p>
+<ul>
+<li>修复程序化订阅错误(<a href="https://github.com/dotnet/orleans/pull/4943">＃4943</a>--<a href="https://github.com/dotnet/orleans/pull/3843">＃3843</a>)</li>
+<li>将消息序列化错误传播给访问者(<a href="https://github.com/dotnet/orleans/pull/4944">＃4944</a>--<a href="https://github.com/dotnet/orleans/pull/4907">＃4907</a>)</li>
+</ul>
+</li>
+<li><p>漏洞修复</p>
+<ul>
+<li>添加StreamSubscriptionHandleFactory以代表功能订阅(<a href="https://github.com/dotnet/orleans/pull/4943">＃4943</a>--<a href="https://github.com/dotnet/orleans/pull/3843">＃3843</a>)。从技术上来说，这虽然是一项重大突破，但它只会影响通过解决该问题(尝试与该方案一起用于SMS流)的程序化订阅功能的用户。<a href="https://github.com/dotnet/orleans/pull/3843">＃3843</a>)。</li>
+</ul>
+</li>
+</ul>
+<h2 id="v204httpsgithubcomdotnetorleansreleasestagv2042018年8月7日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.4">v2.0.4</a>2018年8月7日</h2>
+<ul>
+<li>不间断的错误修复<ul>
+<li>如果使用dotnet核心msbuild但以完整的.net为目标，则将netcoreapp2.0用于msbuild目标dll。<a href="https://github.com/dotnet/orleans/pull/4895">＃4895</a>)</li>
+</ul>
+</li>
+</ul>
+<h2 id="v210httpsgithubcomdotnetorleansreleasestagv2102018年8月28日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.1.0">v2.1.0</a>2018年8月28日</h2>
+<ul>
+<li>主要变化<ul>
+<li>新的调度程序(<a href="https://github.com/dotnet/orleans/pull/3792">＃3792</a>)</li>
+<li>托管客户端(<a href="https://github.com/dotnet/orleans/pull/3362">＃3362</a>)</li>
+<li>分布式事务管理器(测试版)(<a href="https://github.com/dotnet/orleans/pull/3820">＃3820</a>，<a href="https://github.com/dotnet/orleans/pull/4502">＃4502</a>，<a href="https://github.com/dotnet/orleans/pull/4538">＃4538</a>，<a href="https://github.com/dotnet/orleans/pull/4566">＃4566</a>，<a href="https://github.com/dotnet/orleans/pull/4568">＃4568</a>，<a href="https://github.com/dotnet/orleans/pull/4591">＃4591</a>，<a href="https://github.com/dotnet/orleans/pull/4599">＃4599</a>，<a href="https://github.com/dotnet/orleans/pull/4613">＃4613</a>，<a href="https://github.com/dotnet/orleans/pull/4609">＃4609</a>，<a href="https://github.com/dotnet/orleans/pull/4616">＃4616</a>，<a href="https://github.com/dotnet/orleans/pull/4608">＃4608</a>，<a href="https://github.com/dotnet/orleans/pull/4628">＃4628</a>，<a href="https://github.com/dotnet/orleans/pull/4638">＃4638</a>，<a href="https://github.com/dotnet/orleans/pull/4685">＃4685</a>，<a href="https://github.com/dotnet/orleans/pull/4714">＃4714</a>，<a href="https://github.com/dotnet/orleans/pull/4739">＃4739</a>，<a href="https://github.com/dotnet/orleans/pull/4768">＃4768</a>，<a href="https://github.com/dotnet/orleans/pull/4799">＃4799</a>，<a href="https://github.com/dotnet/orleans/pull/4781">＃4781</a>，<a href="https://github.com/dotnet/orleans/pull/4810">＃4810</a>，<a href="https://github.com/dotnet/orleans/pull/4820">＃4820</a>，<a href="https://github.com/dotnet/orleans/pull/4838">＃4838</a>，<a href="https://github.com/dotnet/orleans/pull/4831">＃4831</a>，<a href="https://github.com/dotnet/orleans/pull/4871">＃4871</a>，<a href="https://github.com/dotnet/orleans/pull/4887">＃4887</a>)</li>
+</ul>
+</li>
+</ul>
+<h2 id="v204httpsgithubcomdotnetorleansreleasestagv2042018年8月7日-1"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.4">v2.0.4</a>2018年8月7日</h2>
+<p>自2.0.3以来的改进和错误修复。</p>
+<ul>
+<li>不间断的错误修复<ul>
+<li>在.NET Core上运行时CoreFx /＃30781的解决方法(<a href="https://github.com/dotnet/orleans/pull/4736">＃4736</a>)</li>
+<li>修复.NET Core 2.1构建时代码生成(<a href="https://github.com/dotnet/orleans/pull/4673">＃4673</a>)</li>
+</ul>
+</li>
+</ul>
+<h2 id="v154httpsgithubcomdotnetorleansreleasestagv1542018年6月13日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.4">v1.5.4</a>2018年6月13日</h2>
+<h2 id="v203httpsgithubcomdotnetorleansreleasestagv2032018年5月14日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.3">v2.0.3</a>2018年5月14日</h2>
+<ul>
+<li>这是具有部分构建的第一个修补程序版本-仅更新了9个NuGet软件包：<ul>
+<li>Microsoft.Orleans.OrleansRuntime</li>
+<li>Microsoft.Orleans.OrleansServiceBus</li>
+<li>Microsoft.Orleans.Runtime.Legacy</li>
+<li>Microsoft.Orleans.OrleansCodeGenerator.Build</li>
+<li>微软Orleans核心遗产</li>
+<li>微软Orleans交易</li>
+<li>Microsoft.Orleans.OrleansCodeGenerator</li>
+<li>微软Orleans核心</li>
+<li>微软Orleans测试主机</li>
+</ul>
+</li>
+</ul>
+<p>其余软件包均保持在2.0.0不变，除了<code>Microsoft.Orleans.ServiceFabric</code>元软件包，版本为2.0.2。</p>
+<h2 id="v200httpsgithubcomdotnetorleansreleasestagv2002018年3月28日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.0">v2.0.0</a>2018年3月28日</h2>
+<ul>
+<li>主要更改(自2.0.0-rc2开始)<ul>
+<li>所有包含的提供程序都从全局ClusterOptions获得ServiceId和ClusterId，并且在其自己的选项类上没有那些属性(＃4235，＃4277、4290)</li>
+<li>使用字符串作为ServiceId而不是Guid(＃4262)</li>
+</ul>
+</li>
+</ul>
+<h2 id="v200-rc2httpsgithubcomdotnetorleansreleasestagv200-rc22018年3月12日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.0-rc2">v2.0.0-rc2</a>2018年3月12日</h2>
+<ul>
+<li>主要更改(自2.0.0-rc1开始)<ul>
+<li>新的“外观” API可简化流提供者各个方面的配置：持久流配置器</li>
+</ul>
+</li>
+</ul>
+<h2 id="v200-rc1httpsgithubcomdotnetorleansreleasestagv200-rc12018年2月27日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.0-rc1">v2.0.0-rc1</a>2018年2月27日</h2>
+<ul>
+<li>重大更改(自2.0.0-beta3开始)<ul>
+<li>新的提供者生命周期模型将取代旧的模型</li>
+<li>构建器模式和基于选项的组件和扩展配置</li>
+</ul>
+</li>
+</ul>
+<h2 id="v200-beta3httpsgithubcomdotnetorleansreleasestagv200-beta32017年12月21日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.0-beta3">v2.0.0-beta3</a>2017年12月21日</h2>
+<h2 id="社区虚拟聚会15">社区虚拟聚会＃15</h2>
+<p><a href="https://youtu.be/d3ufDsZcW4k">Orleans2.0与核心团队</a>2017年12月13日<a href="https://github.com/dotnet/orleans/blob/gh-pages/Presentations/VM-15%20-%20Orleans%202.0.pdf">介绍</a></p>
+<h2 id="v200-beta2httpsgithubcomdotnetorleansreleasestagv200-beta22017年12月12日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.0-beta2">v2.0.0-beta2</a>2017年12月12日</h2>
+<h2 id="v153httpsgithubcomdotnetorleansreleasestagv1532017年12月8日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.3">v1.5.3</a>2017年12月8日</h2>
+<h2 id="v200-beta1httpsgithubcomdotnetorleansreleasestagv200-beta12017年10月26日"><a href="https://github.com/dotnet/orleans/releases/tag/v2.0.0-beta1">v2.0.0-beta1</a>2017年10月26日</h2>
+<ul>
+<li>主要新功能<ul>
+<li>现在，大多数软件包都针对.NET Standard 2.0(这意味着它们可以在.NET Framework或.NET Core 2.0中使用)以及在非Windows平台上使用。</li>
+</ul>
+</li>
+</ul>
+<h2 id="v152httpsgithubcomdotnetorleansreleasestagv1522017年10月17日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.2">v1.5.2</a>2017年10月17日</h2>
+<h2 id="v151httpsgithubcomdotnetorleansreleasestagv1512017年8月28日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.1">v1.5.1</a>2017年8月28日</h2>
+<h2 id="v150httpsgithubcomdotnetorleansreleasestagv1502017年7月6日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.5.0">v1.5.0</a>2017年7月6日</h2>
+<ul>
+<li>主要新功能<ul>
+<li>通过ClientBuilder的非静态Grains客户端可以从同一应用程序域连接到多个Orleans群集，并从一个silos中连接到其他群集。</li>
+<li>支持用于非停机升级的grain接口的版本控制。</li>
+<li>支持自定义Grains存储策略和导演。</li>
+<li>支持基于散列的Grains存储。</li>
+</ul>
+</li>
+</ul>
+<h2 id="v142httpsgithubcomdotnetorleansreleasestagv1422017年6月9日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.4.2">v1.4.2</a>2017年6月9日</h2>
+<h2 id="v141httpsgithubcomdotnetorleansreleasestagv1412017年3月27日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.4.1">v1.4.1</a>2017年3月27日</h2>
+<h2 id="社区虚拟聚会14">社区虚拟聚会＃14</h2>
+<p><a href="https://youtu.be/XmsVYLfNHjI">OrleansFSM</a>与<a href="https://github.com/johnazariah">约翰·阿扎里亚(John Azariah)</a>2017年3月22日</p>
+<h2 id="v140httpsgithubcomdotnetorleansreleasestagv1402017年2月21日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.4.0">v1.4.0</a>2017年2月21日</h2>
+<ul>
+<li>主要新功能<ul>
+<li>改进了JournaledGrain，用于事件源，并支持基于地理分布的基于日志的一致性提供程序。</li>
+<li>具有固定存储的每仓库应用程序组件的Grain Services的抽象，其工作负载通过集群一致性环进行分区。</li>
+<li>支持不均匀分布的可用粮仓的异构silos。</li>
+<li>Service Fabric的群集成员资格提供程序。</li>
+</ul>
+</li>
+</ul>
+<h2 id="社区虚拟聚会13">社区虚拟聚会＃13</h2>
+<p><a href="https://youtu.be/_5hWNVccKeQ">升级Orleans应用程序</a>与<a href="https://github.com/sergeybykov">谢尔盖·拜科夫(Sergey Bykov)</a>和团队2017年2月8日<a href="https://github.com/dotnet/orleans/raw/gh-pages/Presentations/VM-13%20-%20Orleans%20%26%20versioning.pptx">介绍</a></p>
+<h2 id="v140-betahttpsgithubcomdotnetorleansreleasestagv140-beta2017年2月1日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.4.0-beta">v1.4.0-beta</a>2017年2月1日</h2>
+<ul>
+<li>主要新功能<ul>
+<li>改进了JournaledGrain，用于事件源，并支持基于地理分布的基于日志的一致性提供程序。</li>
+<li>具有固定存储的每仓库应用程序组件的Grain Services的抽象，其工作负载通过集群一致性环进行分区。</li>
+<li>支持不均匀分布的可用粮仓的异构silos。</li>
+<li>Service Fabric的群集成员资格提供程序。</li>
+</ul>
+</li>
+</ul>
+<h2 id="社区虚拟聚会12">社区虚拟聚会＃12</h2>
+<p><a href="https://youtu.be/JrmHfbZH11M">部署Orleans</a>与<a href="https://github.com/jkonecki">雅库布·科内基(Jakub Konecki)</a>2016年12月8日<a href="https://github.com/dotnet/orleans/raw/gh-pages/Presentations/VM-12%20Orleans-YAMS.pdf">介绍</a></p>
+<h2 id="v131httpsgithubcomdotnetorleansreleasestagv1312016年11月15日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.3.1">v1.3.1</a>2016年11月15日</h2>
+<h2 id="社区虚拟聚会11">社区虚拟聚会＃11</h2>
+<p><a href="https://youtu.be/WiAX_eGEuyo">监控和可视化展示</a>与<a href="https://github.com/richorama">理查德·阿斯特伯里</a>，<a href="https://github.com/danvanderboom">丹·范德布姆</a>和<a href="https://github.com/creyke">罗杰·克雷克</a>2016年10月13日</p>
+<h2 id="130版httpsgithubcomdotnetorleansreleasestagv1302016年10月11日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.3.0">1.3.0版</a>2016年10月11日</h2>
+<h2 id="v124httpsgithubcomdotnetorleansreleasestagv1242016年10月5日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.2.4">v1.2.4</a>2016年10月5日</h2>
+<h2 id="v130-beta2httpsgithubcomdotnetorleansreleasestagv130-beta22016年9月27日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.3.0-beta2">v1.3.0-beta2</a>2016年9月27日</h2>
+<ul>
+<li>显着的新功能<ul>
+<li>支持地理分布的多集群部署<a href="https://github.com/dotnet/orleans/pull/1108/">＃1108</a> <a href="https://github.com/dotnet/orleans/pull/1109/">＃1109</a> <a href="https://github.com/dotnet/orleans/pull/1800/">＃1800</a></li>
+<li>添加了新的Amazon AWS基本Orleans提供程序<a href="https://github.com/dotnet/orleans/issues/2006">＃2006</a></li>
+<li>支持Grain方法中的分布式取消令牌<a href="https://github.com/dotnet/orleans/pull/1599/">＃1599</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="社区虚拟聚会10">社区虚拟聚会＃10</h2>
+<p><a href="https://youtu.be/_SbIbYkY88o">核心团队与Orleans2.0的路线图</a>2016年8月25日</p>
+<h2 id="v123httpsgithubcomdotnetorleansreleasestagv1232016年7月11日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.2.3">v1.2.3</a>2016年7月11日</h2>
+<h2 id="122版httpsgithubcomdotnetorleansreleasestagv1222016年6月15日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.2.2">1.2.2版</a>2016年6月15日</h2>
+<h2 id="v121httpsgithubcomdotnetorleansreleasestagv1212016年5月19日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.2.1">v1.2.1</a>2016年5月19日</h2>
+<h2 id="v120httpsgithubcomdotnetorleansreleasestagv1202016年5月4日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.2.0">v1.2.0</a>2016年5月4日</h2>
+<h2 id="v120-betahttpsgithubcomdotnetorleansreleasestagv120-beta2016年4月18日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.2.0-beta">v1.2.0-beta</a>2016年4月18日</h2>
+<ul>
+<li>重大改进<ul>
+<li>根据Halo 5中使用的相同代码添加了EventHub流提供程序。</li>
+<li><a href="https://github.com/dotnet/orleans/pull/1586">根据情况，吞吐量提高了5％至26％。</a></li>
+<li>将30个功能测试以外的所有功能迁移到GitHub。</li>
+<li>Grains状态不必扩展<code>Grains状态</code>不再(标记为<code>[过时]</code>)，并且可以是简单的POCO类。</li>
+<li><a href="https://github.com/dotnet/orleans/pull/963">增加了对每类的支持</a>和<a href="https://github.com/dotnet/orleans/pull/965">全局服务器端拦截器。</a></li>
+<li><a href="https://github.com/dotnet/orleans/pull/1267">添加了对将Consul 0.6.0用作成员资格提供程序的支持。</a></li>
+<li><a href="https://github.com/dotnet/orleans/pull/1479">支持C＃6。</a></li>
+<li><a href="https://github.com/dotnet/orleans/pull/1455">切换到xUnit进行测试，以实现CoreCLR兼容性。</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="v113httpsgithubcomdotnetorleansreleasestagv1132016年3月9日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.1.3">v1.1.3</a>2016年3月9日</h2>
+<h2 id="社区虚拟聚会9">社区虚拟聚会＃9</h2>
+<p><a href="https://github.com/nehmebilal">内姆·比拉(Nehme Bilal)</a>和<a href="https://github.com/ReubenBond">鲁本·邦德</a> <a href="https://youtu.be/w__D7gnqeZ0">谈论部署Orleans</a>与<a href="https://github.com/Microsoft/Yams">山药</a>和<a href="https://azure.microsoft.com/en-gb/documentation/articles/service-fabric-overview/">服务面料</a>2016年2月26日</p>
+<h2 id="社区虚拟聚会85">社区虚拟聚会＃8.5</h2>
+<p><a href="https://youtu.be/F1Yoe88HEvg">网络讨论</a>由主办<a href="https://github.com/jason-bragg">杰森·布拉格</a>2016年2月11日</p>
+<h2 id="社区虚拟聚会8">社区虚拟聚会＃8</h2>
+<p><a href="https://www.youtube.com/watch?v=4BiCyhvSOs4">Orleans核心团队介绍路线图</a>2016年1月21日</p>
+<h2 id="v112httpsgithubcomdotnetorleansreleasestagv1122016年1月20日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.1.2">v1.1.2</a>2016年1月20日</h2>
+<h2 id="v111httpsgithubcomdotnetorleansreleasestagv1112016年1月11日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.1.1">v1.1.1</a>2016年1月11日</h2>
+<h2 id="社区虚拟聚会7httpswwwyoutubecomwatchvfkl-ps8q9ac"><a href="https://www.youtube.com/watch?v=FKL-PS8Q9ac">社区虚拟聚会＃7</a></h2>
+<p>圣诞特辑-<a href="https://github.com/yevhen">叶文·鲍勃罗夫(Yevhen Bobrov)</a>上<a href="https://github.com/yevhen/Orleankka">Orleans卡</a>2015年12月17日</p>
+<h2 id="v110httpsgithubcomdotnetorleansreleasestagv1102015年12月14日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.1.0">v1.1.0</a>2015年12月14日</h2>
+<h2 id="社区虚拟聚会6">社区虚拟聚会＃6</h2>
+<p><a href="https://www.youtube.com/watch?v=fOl8ophHtug">地理分布Orleansp的MSR博士</a>2015年10月23日</p>
+<h2 id="v1010httpsgithubcomdotnetorleansreleasestagv10102015年9月22日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.0.10">v1.0.10</a>2015年9月22日</h2>
+<h2 id="v109httpsgithubcomdotnetorleansreleasestagv1092015年7月15日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.0.9">v1.0.9</a>2015年7月15日</h2>
+<h2 id="v108httpsgithubcomdotnetorleansreleasestagv1082015年5月26日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.0.8">v1.0.8</a>2015年5月26日</h2>
+<h2 id="社区虚拟聚会5httpswwwyoutubecomwatchvesepblfy554"><a href="https://www.youtube.com/watch?v=eSepBlfY554">社区虚拟聚会＃5</a></h2>
+<p><a href="https://github.com/gabikliot">加布里埃尔·克利奥特(Gabriel Kliot)</a>于新OrleansStreaming API上发表2015年5月22日</p>
+<h2 id="v107httpsgithubcomdotnetorleansreleasestagv1072015年5月15日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.0.7">v1.0.7</a>2015年5月15日</h2>
+<h2 id="社区虚拟聚会4httpswwwyoutubecomwatchv56xz68ltb9c"><a href="https://www.youtube.com/watch?v=56Xz68lTB9c">社区虚拟聚会＃4</a></h2>
+<p><a href="https://github.com/ReubenBond">鲁本·邦德</a>在FreeBay上使用Orleans的机会2015年4月15日</p>
+<h2 id="v105httpsgithubcomdotnetorleansreleasestagv1052015年3月30日"><a href="https://github.com/dotnet/orleans/releases/tag/v1.0.5">v1.0.5</a>2015年3月30日</h2>
+<h2 id="社区虚拟聚会3httpswwwyoutubecomwatchv07up88bpl20"><a href="https://www.youtube.com/watch?v=07Up88bpl20">社区虚拟聚会＃3</a></h2>
+<p><a href="https://github.com/yevhen">叶文·鲍勃罗夫(Yevhen Bobrov)</a>于Orleans的Uniform API上使用2015年3月6日</p>
+<h2 id="社区虚拟聚会2httpswwwyoutubecomwatchvd4kjksffnji"><a href="https://www.youtube.com/watch?v=D4kJKSFfNjI">社区虚拟聚会＃2</a></h2>
+<p>Orleans团队现场问答和路线图2015年1月12日</p>
+<h2 id="orleans开源v10更新2015年1月">Orleans开源v1.0更新(2015年1月)</h2>
+<h2 id="社区虚拟聚会1httpwwwyoutubecomwatchv6coq8xzlopg"><a href="http://www.youtube.com/watch?v=6COQ8XzloPg">社区虚拟聚会＃1</a></h2>
+<p><a href="https://github.com/jkonecki">雅库布·科内基(Jakub Konecki)</a>关于事件来源的Grains2014年12月18日</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/whats_new_in_orleans.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

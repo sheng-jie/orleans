@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>PowerShell Client Module | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="PowerShell Client Module | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="powershell客户端模块">powershell客户端模块</h1>
+
+<p>Orleans Powershell客户端模块是一组<a href="https://technet.microsoft.com/en-us/library/dd772285.aspx">powershell cmdlet</a>那包裹着<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans/Core/GrainClient.cs">grains客户端</a>在一组方便的命令中，不仅可以与<a href="https://github.com/dotnet/orleans/blob/master/src/Orleans.Runtime/Core/ManagementGrain.cs">管理grain</a>但是任何<code>伊格拉因</code>就像普通的Orleans应用程序可以通过使用powershell脚本一样。</p>
+<p>这些cmdlet通过利用powershell脚本，从开始维护任务、测试、监视或任何其他类型的自动化，启用一系列场景。</p>
+<p>使用方法如下：</p>
+<h2 id="安装模块">安装模块</h2>
+<h3 id="来源">来源</h3>
+<p>您可以从源代码构建<code>奥利恩斯普提尔斯</code>投射并导入：</p>
+<pre><code class="lang-powershell">PS&gt; Import-Module .\projectOutputDir\Orleans.psd1
+</code></pre><p>尽管您可以这样做，但是有一种更简单有趣的方法可以通过从<strong>powershell库</strong>是的。</p>
+<h3 id="来自powershell库">来自powershell库</h3>
+<p>现在的powershell模块很容易像nuget包一样共享，但是它们托管在<a href="https://www.powershellgallery.com/">powershell库</a>是的。</p>
+<ul>
+<li>要将其安装到特定文件夹，请运行：</li>
+</ul>
+<pre><code class="lang-powershell">PS&gt; Save-Module -Name OrleansPSUtils -Path &lt;path&gt;
+</code></pre><ul>
+<li>在powershell模块路径上安装(<strong>推荐的方法</strong>)，只需运行：</li>
+</ul>
+<pre><code class="lang-powershell">PS&gt; Install-Module -Name OrleansPSUtils
+</code></pre><ul>
+<li>如果您计划在<a href="https://azure.microsoft.com/en-us/services/automation/">azure自动化</a>，只需单击下面的按钮：<button style="border:none;background-image:none; background-color:transparent " type="button" title="Deploy this module to Azure Automation." onclick="window.open('https://www.powershellgallery.com/packages/Orleans/DeployItemToAzureAutomation?itemType=PSModule', target = '_blank')">
+    <img src="https://www.powershellgallery.com/Content/Images/DeployToAzureAutomationButton.png">
+</button></li>
+</ul>
+<h2 id="使用模块">使用模块</h2>
+<p>无论您决定以何种方式安装它，要实际使用它，首先需要在当前的powershell会话中导入模块，以便通过运行以下命令使cmdlet可用：</p>
+<pre><code class="lang-powershell">PS&gt; Import-Module OrleansPSUtils
+</code></pre><p><strong>注意</strong>：如果是从源代码生成，则必须使用<code>.psd1段</code>而不是使用模块名，因为它不在<code>$env:psmodulepath路径</code>powershell运行时变量。同样，强烈建议您改为从powershell库安装。</p>
+<p>导入模块(这意味着该模块已加载到powershell会话中)后，将有以下cmdlet可用：</p>
+<ul>
+<li><code>启动GrainClient</code></li>
+<li><code>停止GrainClient</code></li>
+<li><code>获取Grains</code></li>
+</ul>
+<h4 id="启动grainclient">启动GrainClient</h4>
+<p>这个模块是一个包装器<code>grainclient.initialize()</code>以及它的超载。</p>
+<p><strong>用法</strong>以下内容：</p>
+<ul>
+<li><p><strong><code>启动GrainClient</code></strong></p>
+<ul>
+<li>与Call相同<code>grainclient.initialize()</code>它将查找已知的Orleans客户端配置文件名</li>
+</ul>
+</li>
+<li><p><strong><code>启动grainclient[-configfilepath]&lt;string&gt;[[-timeout]&lt;timespan&gt;]</code></strong></p>
+<ul>
+<li>将使用提供的文件路径，如中所示<code>grainclient.initialize(文件路径)</code></li>
+</ul>
+</li>
+<li><p><strong><code>启动grainclient[-configfile]&lt;fileinfo&gt;[[-timeout]&lt;timespan&gt;]</code></strong></p>
+<ul>
+<li>使用<code>系统文件信息</code>类表示配置文件，就像<code>grainclient.initialize(文件信息)</code></li>
+</ul>
+</li>
+<li><p><strong><code>启动grainclient[-config]&lt;clientconfiguration&gt;[[-timeout]&lt;timeSPAN&gt;]</code></strong></p>
+<ul>
+<li>使用<code>Orleans.runtime.configuration.clientconfiguration</code>就像在<code>grainclient.initialize(配置)</code></li>
+</ul>
+</li>
+<li><p><strong><code>启动grainclient[-gatewayaddress]&lt;ipendpoint&gt;[[-overrideconfig]&lt;bool&gt;[[-timeout]&lt;timespan&gt;]</code></strong></p>
+<ul>
+<li>采用Orleans群集网关地址终结点</li>
+</ul>
+</li>
+</ul>
+<p><strong>注意</strong>：的<code>超时</code>参数是可选的，如果它被告知并且大于<code>System.TimeSpan.Zero系统.TimeSpan.Zero</code>，它将调用<code>orleans.grainclient.setResponseTimeout(超时)</code>在内部。</p>
+<h4 id="停止grainclient">停止GrainClient</h4>
+<p>不接受任何参数，当调用时，如果<code>grains客户端</code>初始化将正常取消初始化。</p>
+<h4 id="获取grains">获取Grains</h4>
+<p>包装物<code>grainclient.grainfactory.getgrain&lt;t&gt;()</code>以及它的超载。</p>
+<p>强制参数是<code>-Grain</code>以及<code>-xxx键</code>对于Orleans支持的当前Grains密钥类型(<code>一串</code>，请<code>指导方针</code>我是说，<code>长的</code>)还有<code>-键扩展</code>可以用在有复合键的Grains上。</p>
+<p>此cmdlet返回作为上的参数传递的类型的Grain引用<code>-Grain</code>是的。</p>
+<h2 id="例子">例子：</h2>
+<p>一个简单的调用示例<code>MyInterfacesNamespace.IMyGrain.SayHeloTo</code>grains法：</p>
+<pre><code class="lang-powershell">PS&gt; Import-Module OrleansPSUtils
+PS&gt; $configFilePath = Resolve-Path(&quot;.\ClientConfig.xml&quot;).Path
+PS&gt; Start-GrainClient -ConfigFilePath $configFilePath
+PS&gt; Add-Type -Path .\MyGrainInterfaceAssembly.dll
+PS&gt; $grainInterfaceType = [MyInterfacesNamespace.IMyGrain]
+PS&gt; $grainId = [System.Guid]::Parse(&quot;A4CF7B5D-9606-446D-ACE9-C900AC6BA3AD&quot;)
+PS&gt; $grain = Get-Grain -GrainType $grainInterfaceType -GuidKey $grainId
+PS&gt; $message = $grain.SayHelloTo(&quot;Gutemberg&quot;).Result
+PS&gt; Write-Output $message
+Hello Gutemberg!
+PS&gt; Stop-GrainClient
+</code></pre><p>我们计划更新这个页面，因为我们在powershell上引入了更多的cmdlet，如useobservators、streams和其他orleans核心特性。我们希望这能帮助人们成为自动化的起点。一如既往，这是一项正在进行的工作，我们热爱贡献！：)</p>
+<p>请注意，目的不是在powershell上重新实现整个客户端，而是给it和devops团队一种与grains交互的方式，而无需实现一个.net应用程序。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/powershell_client.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

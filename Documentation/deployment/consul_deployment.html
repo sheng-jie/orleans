@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Using Consul as a Membership Provider | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Using Consul as a Membership Provider | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="使用consul作为成员资格提供程序">使用consul作为成员资格提供程序</h1>
+
+<h2 id="领事介绍">领事介绍</h2>
+<p><a href="https://www.consul.io">领事</a>是一个分布式、高可用和数据中心感知的服务发现平台，包括简单的服务注册、运行状况检查、故障检测和密钥/值存储。它是在数据中心的每个节点都运行一个consu代理的前提下构建的，consun代理可以充当服务器，也可以作为客户端，通过一个可伸缩的八卦协议进行通信。</p>
+<p>consul有一个非常详细的概述，包括与类似解决方案的比较<a href="https://www.consul.io/intro/index.html">在这里</a>是的。</p>
+<p>执政官写的是go<a href="https://github.com/hashicorp/consul">开源</a>；编译的下载可用于<a href="https://www.consul.io/downloads.html">Mac OS X、FreeBSD、Linux、solaris和Windows</a></p>
+<h2 id="为什么选择领事">为什么选择领事？</h2>
+<p>作为<a href="../implementation/cluster_management.html">Orleans会员服务商</a>，当您需要提供<strong>内部解决方案</strong>这并不要求潜在客户拥有现有的基础设施。<strong>和</strong>一家合作的it提供商。consul是一个非常轻量级的单一可执行文件，没有依赖关系，因此可以很容易地构建到您自己的中间件解决方案中。当consul已经是您发现、检查和维护微服务的解决方案时，完全集成orleans成员关系以简化操作是有意义的。因此，我们在consul(也称为“orleans custom system store”)中实现了一个成员表，它与orleans的<a href="../implementation/cluster_management.html">群集管理</a>是的。</p>
+<h2 id="设立领事">设立领事</h2>
+<p>有很多关于<a href="https://www.consul.io">IO领事</a>关于建立一个稳定的领事集群，在这里重复是没有意义的；但是为了您的方便，我们提供了这个指南，这样您可以很快让Orleans运行一个独立的领事代理。</p>
+<p>1)创建一个文件夹以将consul安装到其中，例如c:\ consul</p>
+<p>2)创建子文件夹：C:\Cuxel\Data(如果不存在，Cuxl将不创建此文件)</p>
+<p>三)<a href="https://www.consul.io/downloads.html">下载</a>并将consul.exe解压到c:\ consul\</p>
+<p>4)在C:\ consul打开命令提示符\</p>
+<p>5)进入<code>consun.exe代理-服务器-引导-数据目录“C:\ consun\data”-客户端=0.0.0.0</code></p>
+<p><code>代理人</code>指示consul运行托管服务的代理进程。如果不这样做，consul进程将尝试使用rpc来配置正在运行的代理。</p>
+<p><code>-服务器</code>将代理定义为服务器而不是客户端(consul<em>客户</em>是托管所有服务和数据的代理，但没有投票权来决定，并且不能成为群集的领导者</p>
+<p><code>-自举</code>第一个(而且只有第一个！)必须引导群集中的节点，使其承担群集领导地位。</p>
+<p><code>-数据目录[路径]</code>指定存储所有consun数据的路径，包括cluster membership表</p>
+<p><code>-客户端=0.0.0.0</code>通知领事在哪个IP上打开服务。</p>
+<p>还有许多其他参数，以及使用json配置文件的选项。有关选项的完整列表，请参阅consul文档。</p>
+<p>6)通过打开<a href="http://localhost:8500/v1/catalog/services">服务</a>浏览器中的终结点。</p>
+<h2 id="orleans的结构">Orleans的结构</h2>
+<h3 id="服务器">服务器</h3>
+<p>“自定义”成员资格提供程序orleansconfiguration.xml配置文件当前存在一个已知问题，无法正确解析该文件。因此，在启动silos之前，必须在XML中提供一个占位符SystemStore，然后在代码中配置提供程序。</p>
+<p><strong>orleansconfiguration.xml文件</strong></p>
+<pre><code class="lang-xml">&lt;OrleansConfiguration xmlns=&quot;urn:orleans&quot;&gt;
+    &lt;Globals&gt;
+        &lt;SystemStore SystemStoreType=&quot;None&quot; DataConnectionString=&quot;http://localhost:8500&quot; DeploymentId=&quot;MyOrleansDeployment&quot; /&gt;
+    &lt;/Globals&gt;
+    &lt;Defaults&gt;
+        &lt;Networking Address=&quot;localhost&quot; Port=&quot;22222&quot; /&gt;
+        &lt;ProxyingGateway Address=&quot;localhost&quot; Port=&quot;30000&quot; /&gt;
+    &lt;/Defaults&gt;    
+&lt;/OrleansConfiguration&gt;
+</code></pre><p><strong>代码</strong></p>
+<pre><code class="lang-csharp">public void Start(ClusterConfiguration config)
+{
+    _siloHost = new SiloHost(System.Net.Dns.GetHostName(), config);
+
+    _siloHost.Config.Globals.LivenessType = GlobalConfiguration.LivenessProviderType.Custom;
+    _siloHost.Config.Globals.MembershipTableAssembly = &quot;OrleansConsulUtils&quot;;
+    _siloHost.Config.Globals.ReminderServiceType = GlobalConfiguration.ReminderServiceProviderType.Disabled;
+
+    _siloHost.InitializeOrleansSilo();
+    var startedok = _siloHost.StartOrleansSilo();
+    if (!startedok)
+        throw new SystemException(String.Format(&quot;Failed to start Orleans silo &#39;{0}&#39; as a {1} node&quot;, _siloHost.Name, _siloHost.Type));
+
+    Log.Information(&quot;Orleans Silo is running.\n&quot;);
+}
+</code></pre><p>或者，您可以完全用代码配置silos。</p>
+<h3 id="顾客">顾客</h3>
+<p>客户端配置要简单得多</p>
+<p><strong>客户端配置.xml</strong></p>
+<pre><code class="lang-xml">&lt;ClientConfiguration xmlns=&quot;urn:orleans&quot;&gt;
+    &lt;SystemStore SystemStoreType=&quot;Custom&quot; CustomGatewayProviderAssemblyName=&quot;OrleansConsulUtils&quot; DataConnectionString=&quot;http://192.168.1.26:8500&quot; DeploymentId=&quot;MyOrleansDeployment&quot; /&gt;
+&lt;/ClientConfiguration&gt;
+</code></pre><h2 id="客户端sdk">客户端sdk</h2>
+<p>如果您有兴趣使用领事馆为您自己的服务发现有<a href="https://www.consul.io/downloads_tools.html">客户SDK</a>最流行的语言。</p>
+<h2 id="实施细节">实施细节</h2>
+<p>成员资格表提供程序使用<a href="https://www.consul.io/intro/getting-started/kv.html">领事钥匙/价值商店</a>cas的功能。当每个silos启动时，它会注册两个KV条目，一个包含silos的详细信息，另一个保存silos上次报告它处于活动状态时的信息(后者是指诊断“I am alive”条目，而不是指直接在silos之间发送且未写入表中的故障检测Hearbeats)。根据orleans的需要，对表的所有写操作都由cas执行，以提供并发控制。<a href="../implementation/cluster_management.html">群集管理协议</a>是的。silos运行后，您可以在Web浏览器中查看这些条目<a href="http://localhost:8500/v1/kv/?keys">在这里</a>，将显示如下内容：</p>
+<pre><code class="lang-js">[
+    &quot;orleans/MyOrleansDeployment/192.168.1.26:11111@191780753&quot;,
+    &quot;orleans/MyOrleansDeployment/192.168.1.26:11111@191780753/iamalive&quot;
+]
+</code></pre><p>您会注意到这些键的前缀是<em>“Orleans/”</em>这是在提供者中硬编码的，旨在避免与consul的其他用户发生密钥空间冲突。每个键都可以通过附加它们的键名来读取<em>(当然没有引用)</em>致<a href="http://localhost:8500/v1/kv/">领事KV根</a>是的。这样做将为您提供以下信息：</p>
+<pre><code class="lang-js">[
+    {
+        &quot;LockIndex&quot;: 0,
+        &quot;Key&quot;: &quot;orleans/MyOrleansDeployment/192.168.1.26:22222@191780753&quot;,
+        &quot;Flags&quot;: 0,
+        &quot;Value&quot;: &quot;[BASE64 UTF8 Encoded String]&quot;,
+        &quot;CreateIndex&quot;: 10,
+        &quot;ModifyIndex&quot;: 12
+    }
+]
+</code></pre><p>解码字符串将提供实际的Orleans成员资格数据：</p>
+<p><strong><a href="http://localhost:8500/v1/KV/orleans/MyOrleansDeployment/[SiloAddress">http://localhost:8500/v1/KV/orleans/MyOrleansDeployment/[SiloAddress</a>]</strong></p>
+<pre><code>{
+    &quot;Hostname&quot;: &quot;[YOUR_MACHINE_NAME]&quot;,
+    &quot;ProxyPort&quot;: 22222,
+    &quot;StartTime&quot;: &quot;2016-01-29T16:25:54.9538838Z&quot;,
+    &quot;Status&quot;: 3,
+    &quot;SuspectingSilos&quot;: []
+}
+</code></pre><p><strong><a href="http://localhost:8500/v1/KV/orleans/MyOrleansDeployment/[SiloAddress]/IAmAlive">http://localhost:8500/v1/KV/orleans/MyOrleansDeployment/[SiloAddress]/IAmAlive</a></strong></p>
+<pre><code>&quot;2016-01-29T16:35:58.9193803Z&quot;
+</code></pre><p>当客户端连接时，他们通过使用uri在一个http get中读取集群中所有silos的kvs<code>http://192.168.1.26:8500/v1/kv/orleans/myorleansdeployment/？递归</code>是的。</p>
+<h2 id="限制">限制</h2>
+<h3 id="orleans扩展成员协议表版本和etag">Orleans扩展成员协议(表版本和ETag)</h3>
+<p>consul kv currently目前不支持原子更新。因此，orleans consul成员资格提供者只实现了orleans基本成员资格协议，如前所述<a href="../implementation/cluster_management.html">在这里</a>不支持扩展成员身份协议。这个扩展的协议被引入作为一个额外的，但不是必需的，silos连通性验证和作为尚未实现的功能的基础。如果您的基础设施配置正确，您将不会因缺乏支持而受到任何不利影响。</p>
+<h3 id="多个数据中心">多个数据中心</h3>
+<p>consun中的键值对当前未在consun数据中心之间复制。有一个<a href="https://github.com/hashicorp/consul-replicate">单独项目</a>为了解决这个问题，但它还没有被证明支持Orleans。</p>
+<h3 id="在windows上运行时">在Windows上运行时</h3>
+<p>当consul在windows上启动时，它会记录以下消息：</p>
+<pre><code>==&gt; WARNING: Windows is not recommended as a Consul server. Do not use in production.
+</code></pre><p>这仅仅是因为在windows环境中运行时缺乏对测试的关注，而不是因为任何实际的已知问题。阅读<a href="https://groups.google.com/forum/#!topic/consul-tool/DvXYgZtUZyU">此处讨论</a>在决定领事是否适合你之前。</p>
+<h2 id="未来的潜在增强">未来的潜在增强</h2>
+<p>1)证明consun-kv复制项目能够在多个consun数据中心之间的广域网环境中支持一个orleans集群。</p>
+<p>2)在领事馆执行提醒表。</p>
+<p>3)实现扩展成员协议。consul背后的团队确实计划实现原子操作，一旦此功能可用，就可以消除提供者中的限制。</p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/consul_deployment.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Multi-Cluster Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Multi-Cluster Configuration | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h2 id="多群集配置">多群集配置</h2>
+
+<p>多群集配置确定哪些群集当前是多群集的一部分。它不会自动更改，但由操作员控制。因此，它与集群中使用的成员机制有很大不同，后者自动确定集群中的一组silos。</p>
+<p>我们对服务中的集群使用以下术语：</p>
+<ul>
+<li>集群是<em>积极的</em>如果它至少有一个活动silos，并且<em>不活动</em>否则</li>
+<li>集群是<em>加入</em>如果它是当前多群集配置的一部分，并且<em>未连接</em>否则</li>
+</ul>
+<p>活动/非活动与连接/非连接是独立的：所有四种组合都是可能的。</p>
+<p>特定服务的所有集群都通过<a href="GossipChannels.html">八卦网</a>是的。八卦网传播配置和状态信息。</p>
+<h3 id="注入配置">注入配置</h3>
+<p>运营商通过将配置更改注入多集群网络来发布配置更改。配置可以注入到任何集群中，并从那里扩展到所有活动集群。每个新配置都包含一个组成多集群的集群id列表。它还有一个UTC时间戳，用于跟踪它在八卦网中的传播。</p>
+<p>最初，多集群配置为空，这意味着多集群列表为空(不包含集群)。因此，操作员<em>必须</em>最初注入多群集配置。一旦注入，此配置将在所有连接的silos(运行时)和所有指定的八卦频道(如果这些频道是持久的)中持续存在。</p>
+<p>我们对注入新配置提出了一些限制，操作员必须遵守这些限制：</p>
+<ul>
+<li>每个新配置都可以添加多个集群，或删除多个集群(但不能同时删除这两个集群)。</li>
+<li>在仍在处理以前的配置更改时，操作员不应发布新配置。</li>
+</ul>
+<p>这些限制确保诸如单实例协议之类的协议可以正确地维护激活的互斥，即使在配置更改的情况下也是如此。</p>
+<h4 id="经管粮">经管粮</h4>
+<p>使用Orleans管理Grain，可以在任何集群中的任何节点上注入多集群配置。例如，要注入由三个集群{us1、eu1、us2}组成的多集群配置，我们可以向管理Grain传递一个可枚举的字符串：</p>
+<pre><code class="lang-csharp">   var clusterlist = &quot;us1,eu1,us2&quot;.Split(&#39;,&#39;);
+   var mgtGrain = client.GetGrain&lt;IManagementGrain&gt;(0); 
+   mgtGrain.InjectMultiClusterConfiguration(clusterlist, &quot;my comment here&quot;));
+</code></pre><p>第一个论点<code>注入多群集配置</code>是群集ID的可枚举项，它将定义新的多群集配置。第二个参数是一个(可选)注释字符串，可用于用任意信息标记配置，例如谁注入了配置的原因。</p>
+<p>有一个可选的第三个参数，一个名为<code>第一次检查</code>，默认为true。这意味着系统将尽最大努力检查是否有任何silos尚未赶上当前配置，如果发现此类silos，则拒绝更改。这有助于检测违反限制的情况，即一次只能挂起一个配置更改(尽管在任何情况下都不能保证)。</p>
+<h4 id="通过默认配置">通过默认配置</h4>
+<p>在预先知道多集群配置并且每次部署都是新的(例如为了测试)的情况下，我们可能希望提供默认配置。全局配置支持可选属性<code>默认多群集</code>它采用以逗号分隔的群集ID列表：</p>
+<pre><code class="lang-csharp">var silo = new SiloHostBuilder()
+  [...]
+  .Configure&lt;MultiClusterOptions&gt;(options =&gt; 
+  {
+    [...]
+    options.DefaultMultiCluster = new[] { &quot;us1&quot;, &quot;eu1&quot;, &quot;us2&quot; }; 
+    [...]
+  })
+  [...]
+</code></pre><p>使用此设置启动silos后，它将检查当前多群集配置是否为空，如果为空，则将给定配置注入当前UTC时间戳。</p>
+<p>警告。持久的多集群八卦频道(例如，基于azuretable)保留上次注入的配置，除非它们被显式删除。在这种情况下，指定DefaultMultiCluster在重新部署群集时不起作用，因为存储在八卦频道中的配置不为空。&gt;</p>
+<h4 id="通过八卦频道">通过八卦频道</h4>
+<p>操作员还可以将配置直接注入八卦频道。频道中的变化会被周期性的背景八卦自动拾取和传播，尽管可能非常缓慢(使用管理Grain要快得多)。对传播时间的粗略估计是30秒(或全局配置中指定的任何八卦间隔)乘以所有集群中silos总数的二进制对数。但是，由于八卦对是随机选择的，所以它可以快得多，也可以慢得多。</p>
+<p>如果使用基于azure表的八卦频道，运营商只需在<code>Orleans可行</code>，例如，使用某些工具编辑azure表中的数据。配置记录的格式如下：</p>
+<table>
+<thead>
+<tr>
+<th>姓名</th>
+<th>类型</th>
+<th>价值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分区键</td>
+<td>字符串</td>
+<td>服务ID</td>
+</tr>
+<tr>
+<td>行键</td>
+<td>字符串</td>
+<td>“配置”</td>
+</tr>
+<tr>
+<td>集群</td>
+<td>字符串</td>
+<td>群集ID的逗号分隔列表，例如“us1、eu1、us2”</td>
+</tr>
+<tr>
+<td>评论</td>
+<td>字符串</td>
+<td>可选注释</td>
+</tr>
+<tr>
+<td>棉纱印花</td>
+<td>日期时间</td>
+<td>配置的UTC时间戳</td>
+</tr>
+</tbody>
+</table>
+<p>
+
+<p><strong>注意</strong>是啊。在存储器中编辑此记录时，gossipttimestamp也必须设置为比当前更新的值(否则将忽略更改)。最方便和推荐的方法是<em>删除gossipttimestamp字段</em>-然后，我们的gossip通道实现会自动将其替换为正确的当前时间戳(它使用azure表时间戳)。</p>
+<h3 id="群集添加删除过程">群集添加/删除过程</h3>
+<p>从多集群中添加或删除集群通常需要在一些更大的上下文中进行协调。我们建议在从多群集添加/删除群集时始终遵循以下步骤。</p>
+<h4 id="添加群集的过程">添加群集的过程</h4>
+<ol>
+<li>启动一个新Orleans集群，等待所有silos都启动并运行。</li>
+<li>插入包含新群集的配置。</li>
+<li>开始将用户请求路由到新群集。</li>
+</ol>
+<h4 id="删除群集的过程">删除群集的过程</h4>
+<ol>
+<li>停止将新用户请求路由到群集。</li>
+<li>插入不再包含群集的配置。</li>
+<li>停止群集的所有silos。</li>
+</ol>
+<p>以这种方式删除群集后，可以按照添加新群集的过程重新添加它。</p>
+<h3 id="非连接群集上的活动">非连接群集上的活动</h3>
+<p>在群集处于活动状态和未连接状态时，可能会有短暂的临时时间段：</p>
+<ul>
+<li>新启动的集群可能在进入多集群配置之前(在添加集群的过程的步骤1和步骤2之间)开始执行代码。</li>
+<li>正在停用的群集在关闭silos之前(在删除群集的过程的步骤2和步骤3之间)仍可以执行代码。</li>
+</ul>
+<p>在这些中间情况下，可能出现以下情况：</p>
+<ul>
+<li>对于全局单实例grains：grains可能在未连接的集群上具有重复激活。</li>
+<li>对于已版本化的grains：当grains状态更改时，未连接群集上的激活不会收到通知。</li>
+</ul>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/deployment/multi-cluster_support/MultiClusterConfiguration.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

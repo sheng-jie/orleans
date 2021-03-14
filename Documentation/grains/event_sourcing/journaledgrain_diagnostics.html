@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>JournaledGrain Diagnostics | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="JournaledGrain Diagnostics | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="journaledgrain诊断">JournaledGrain诊断</h1>
+
+<h2 id="监视连接错误">监视连接错误</h2>
+<p>通过设计，日志一致性提供程序在出现连接错误(包括与存储的连接以及群集之间的连接)时具有弹性。但是仅仅容忍错误是不够的，因为应用程序通常需要监视任何此类问题，并在严重时提请操作员注意。</p>
+<p>当观察到连接错误并解决了这些错误时，JournaledGrain子类可以重写以下方法来接收通知：</p>
+<pre><code class="lang-csharp">protected override void OnConnectionIssue(ConnectionIssue issue) 
+{
+    /// handle the observed error described by issue             
+}
+protected override void OnConnectionIssueResolved(ConnectionIssue issue) 
+{
+    /// handle the resolution of a previously reported issue             
+}
+</code></pre><p><code>ConnectionIssue</code>是一个抽象类，有几个公共字段描述该问题，包括自上次成功连接以来已观察到此问题的次数。连接问题的实际类型由子类定义。连接问题分为以下几种类型：<code>PrimaryOperationFailed</code>要么<code>NotificationFailed</code>，有时还有多余的键(例如<code>RemoteCluster</code>)，进一步缩小了类别。</p>
+<p>如果同一类别的问题多次发生(例如，我们不断收到以相同的<code>RemoteCluster</code>为目标的<code>NotificationFailed</code>)，每次由<code>OnConnectionIssue</code>。解决此类问题后(例如，我们终于可以成功向此发送通知<code>RemoteCluster</code>)， 然后<code>OnConnectionIssueResolved</code>被调用一次，与<code>问题</code>上次报告的对象<code>OnConnectionIssue</code>。独立类别的连接问题及其解决方案将独立报告。</p>
+<h2 id="简单统计">简单统计</h2>
+<p>目前，我们为基本统计信息提供了简单的支持(将来，我们可能会用更标准的遥测机制来代替它)。通过调用可以为JournaledGrain启用或禁用统计信息收集</p>
+<pre><code class="lang-csharp">void EnableStatsCollection()
+void DisableStatsCollection()
+</code></pre><p>可以通过调用获取统计信息</p>
+<pre><code class="lang-csharp">LogConsistencyStatistics GetStats()
+</code></pre></article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/grains/event_sourcing/journaledgrain_diagnostics.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

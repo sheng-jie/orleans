@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Silo Error Code Monitoring | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Silo Error Code Monitoring | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../../../favicon.ico">
+    <link rel="stylesheet" href="../../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../../styles/docfx.css">
+    <link rel="stylesheet" href="../../../styles/main.css">
+    <meta property="docfx:navrel" content="../../../toc.html">
+    <meta property="docfx:tocrel" content="../../toc.html">
+    
+    <meta property="docfx:rel" content="../../../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../../../index.html">
+                <img id="logo" class="svg" src="../../../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="silos错误代码监视">silos错误代码监视</h1>
+
+<table>
+<thead>
+<tr>
+<th>群组</th>
+<th>日志类型</th>
+<th>日志代码值</th>
+<th>门槛</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>azure问题</td>
+<td>警告或错误</td>
+<td>100800至100899</td>
+<td>任何错误或警告</td>
+<td>读取或写入azure表存储的暂时性问题将记录为警告。将自动重试临时读取错误。最后一条错误日志消息意味着连接到azure表存储存在实际问题。</td>
+</tr>
+<tr>
+<td>成员连接问题</td>
+<td>警告或错误</td>
+<td>100600-100699</td>
+<td>任何错误或警告</td>
+<td>警告日志是网络连接问题和/或silos重启/迁移的早期指示。ping超时和silo死投票将显示为警告消息。silo detesting it was voted dead将显示为错误消息。</td>
+</tr>
+<tr>
+<td>Grains访问超时</td>
+<td>警告</td>
+<td>100157个</td>
+<td>短时间内记录多个警告</td>
+<td>Grains调用超时问题通常由临时网络连接问题或silos重新启动/重新启动问题引起。系统应在短时间后恢复(取决于活动配置设置)，此时应清除超时。理想情况下，仅监视批量日志代码600157这些警告的种类就应该足够了。</td>
+</tr>
+<tr>
+<td>silos重启/迁移</td>
+<td>警告</td>
+<td>100601或100602</td>
+<td>任何警告</td>
+<td>当silos检测到它在同一台计算机{100602)上重新启动或迁移到不同的计算机(100601)时打印警告</td>
+</tr>
+<tr>
+<td>网络套接字问题</td>
+<td>警告或错误</td>
+<td>101000至101999、100307100015、100016</td>
+<td>任何错误或警告</td>
+<td>插座断开记录为警告消息。打开套接字或在消息传输期间出现的问题记录为错误。</td>
+</tr>
+<tr>
+<td>grain问题</td>
+<td>警告或错误</td>
+<td>101534个</td>
+<td>任何错误或警告</td>
+<td>检测非重入grains的“卡住”请求。每次请求执行时间超过5倍请求超时时，都会报告错误代码。</td>
+</tr>
+</tbody>
+</table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Documentation/clusters_and_clients/monitoring/silo_error_code_monitoring.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../../styles/main.js"></script>
+  </body>
+</html>

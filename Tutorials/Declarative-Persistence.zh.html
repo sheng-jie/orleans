@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Declarative Persistence | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Declarative Persistence | Microsoft Orleans &#20013;&#25991;&#25991;&#26723; ">
+    <meta name="generator" content="docfx 2">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../Images/logo-light.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="声明性持久化">声明性持久化</h1>
+
+<p>在第二个教程中，我们看到了grain state是如何在客户端被关闭的情况下幸存下来的，这为许多类似缓存的场景打开了大门，在这种场景中，Orleans被视为一种“带有行为的缓存”，一种面向对象的缓存，如果你愿意的话。这已经是非常有价值的了，并且通过一个简单、熟悉的编程模型和内置的单线程执行保证来实现服务器端的可伸缩性。</p>
+<p>但是，有时，您正在累积的某些状态属于某种形式的永久存储，因此它可以在silos关闭或从一个silos迁移到另一个silos以实现负载平衡或服务完全重新启动/关机后继续存在。我们迄今所看到的情况将不支持这种情况。</p>
+<p>幸运的是，Orleans提供了一个简单的声明性模型，用于标识需要存储在永久位置的状态，同时将何时保存和恢复状态的决定权交给编程控制。您不需要使用声明性持久化机制，并且仍然可以直接从grain代码访问存储，但这是一种很好的方法，可以为您节省一些样板代码，并构建可跨各种存储服务移植的应用程序。</p>
+<h2 id="入门">入门</h2>
+<p>我们将继续以我们的员工和经理样本为基础。</p>
+<p>我们需要做的第一件事是让我们的员工和管理者的身份更加可预测。在这个示例中，使用<code>Guid.NewGuid()</code>，这很方便，但不允许我们在后续运行中找到它们。因此，我们将首先创建一组guid，然后将它们用作工作者标识。</p>
+<p>修改后的客户端程序如下所示：</p>
+<pre><code class="lang-csharp">private static async Task DoClientWork(IClusterClient client)
+{
+     ...
+    var ids = new string[] {
+        &quot;42783519-d64e-44c9-9c29-399e3afaa625&quot;,
+        &quot;d694a4e0-1bc3-4c3f-a1ad-ba95103622bc&quot;,
+        &quot;9a72b0c6-33df-49db-ac05-14316edd332d&quot;,
+        &quot;6526a751-b9ac-4881-9bfb-836ecce2ca9f&quot;,
+        &quot;ae4b106f-3c96-464a-b48d-3583ed584b17&quot;,
+        &quot;b715c40f-d8d2-424d-9618-76afbc0a2a0a&quot;,
+        &quot;5ad92744-a0b1-487b-a9e7-e6b91e9a9826&quot;,
+        &quot;e23a55af-217c-4d76-8221-c2b447bf04c8&quot;,
+        &quot;2eef0ac5-540f-4421-b9a9-79d89400f7ab&quot;
+    };
+
+    var e0 = client.GetGrain&lt;IEmployee&gt;(Guid.Parse(ids[0]));
+    var e1 = client.GetGrain&lt;IEmployee&gt;(Guid.Parse(ids[1]));
+    var e2 = client.GetGrain&lt;IEmployee&gt;(Guid.Parse(ids[2]));
+    var e3 = client.GetGrain&lt;IEmployee&gt;(Guid.Parse(ids[3]));
+    var e4 = client.GetGrain&lt;IEmployee&gt;(Guid.Parse(ids[4]));
+
+    var m0 = client.GetGrain&lt;IManager&gt;(Guid.Parse(ids[5]));
+    var m1 = client.GetGrain&lt;IManager&gt;(Guid.Parse(ids[6]));
+     ...
+}
+</code></pre><blockquote><p>注意：如果您从Orleans1.5过渡，您会注意到客户端不再是静态的。请参考<a href="../Documentation/resources/Migration/Migration1.5.html">从Orleans迁移到0.5</a>第页。</p>
+</blockquote>
+<p>下一步，我们将进行一些silos配置，以便配置将允许我们访问持久存储的存储提供程序。SiloHost项目包括一个文件<em>程序.cs</em>我们可以在这里找到以下部分：</p>
+<pre><code class="lang-csharp">var builder = new SiloHostBuilder()
+                .UseLocalhostClustering()
+                .Configure&lt;EndpointOptions&gt;(options =&gt; options.AdvertisedIPAddress = IPAddress.Loopback)
+                .ConfigureLogging(logging =&gt; logging.AddConsole());
+
+var host = builder.Build();
+await host.StartAsync();
+return host;
+</code></pre><p>如果这是托管在Azure云服务中，则可以在调用之前使用以下任一选项<code>建造者。建造者()</code>要使用Azure来保持grains状态，请执行以下操作：</p>
+<pre><code class="lang-csharp">// Stores grains as composition of fields
+builder.AddAzureTableGrainStorage(option =&gt; option.ConnectionString = your_connection_string);
+// Stores grains as blobs
+builder.AddAzureBlobGrainStorage(option =&gt; option.ConnectionString = your_connection_string);
+</code></pre><p>这个<code>记忆库</code>provider相当无趣，因为它实际上不提供任何永久存储；它的目的是调试持久化grains，而不能访问持久化存储。在我们的例子中，这使得很难证明持久化，所以我们将依赖于一个真正的存储提供者。</p>
+<p>根据您是否已经设置(并希望使用)Azure存储帐户，还是希望依赖Azure存储仿真程序，您应该添加其他两行中的一行，但不能同时添加这两行。您可以使用<code>AddAzureTableStorage提供程序()</code>函数或<code>AddAzureBlobStorageProvider()</code>函数取决于您希望如何存储信息。</p>
+<p>对于前者，您必须在安装最新版本的azuresdk之后启动Azure存储仿真器。对于后者，您必须创建一个Azure存储帐户，并在配置文件中输入名称和密钥。</p>
+<p>启用其中一个，我们就可以处理grain代码了。</p>
+<blockquote><p>注意：在Orleans 2.0中，许多功能被拆分成更小的包，以允许更细Grain的配置和部署。这包括Azure存储提供程序。请安装<a href="https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AzureStorage/">Orleans持久化</a>如果要将Azure用作存储提供程序，请打包。您可以通过<a href="https://www.nuget.org/packages?q=Microsoft.Orleans.Persistence">寻找Orleans。坚持</a>.</p>
+</blockquote>
+<h2 id="申报国">申报国</h2>
+<p>确定grains应使用持久状态需要三个步骤：</p>
+<ol>
+<li>为州声明一个类，</li>
+<li>改变Grains基类，以及</li>
+<li>正在标识存储提供程序。</li>
+</ol>
+<p>第一步，在grain实现项目中声明一个state类，只意味着标识应该持久化的参与者的信息，并创建一个看起来像持久数据记录的内容——每个状态组件都由一个带有getter和setter的属性表示。</p>
+<p>对于员工，我们希望保持所有状态：</p>
+<pre><code class="lang-csharp">public class  EmployeeState
+{
+    public int Level { get; set; }
+    public IManager Manager { get; set; }
+}
+</code></pre><p>对于经理来说，我们必须存储直接下属，但是<code>_我</code>在激活期间可能会继续创建引用。</p>
+<pre><code class="lang-csharp">public class ManagerState
+{
+    public List&lt;IEmployee&gt; Reports { get; set; }
+}
+</code></pre><p>然后，我们更改grain类声明以标识状态接口(例如，从<code>Orleans。Grains</code>到<code>Orleans。Grains&lt;EmployeeState&gt;</code>)并删除我们想要持久化的变量。确保移除<code>水平</code>，和<code>经理</code>从<code>雇员</code>类和<code>_报告</code>从<code>经理</code>班级。除此之外，我们还必须更新这些功能。</p>
+<p>我们还添加了一个属性来标识存储提供程序：</p>
+<pre><code class="lang-csharp">[StorageProvider(ProviderName = &quot;AzureStore&quot;)]
+public class Employee : Orleans.Grain&lt;EmployeeState&gt;, Interfaces.IEmployee
+</code></pre><p>和</p>
+<pre><code class="lang-csharp">[StorageProvider(ProviderName=&quot;AzureStore&quot;)]
+public class Manager : Orleans.Grain&lt;ManagerState&gt;, IManager
+</code></pre><p>在声明显而易见的风险下，存储提供程序属性的名称应该与配置silos时使用的名称相匹配。这种间接性使您能够在部署之前延迟关于在哪里存储Grain状态的选择。</p>
+<p>考虑到这些声明性的更改，grain不应该再依赖私有字段来保持补偿级别和管理器。相反，grain基类让我们通过<code>State</code>可用于Grains的属性。</p>
+<p>例如：</p>
+<pre><code class="lang-csharp">public Task SetManager(IManager manager)
+{
+   State.Manager = manager;
+   return TaskDone.Done;
+}
+</code></pre><h2 id="控制检查点">控制检查点</h2>
+<p>剩下的问题是持久状态何时保存到存储提供程序。</p>
+<p>Orleans设计人员可以做出的一个选择是在每次方法调用后都设置运行时保存状态，但结果证明这是不可取的，因为它过于保守——并非所有调用都会修改所有调用的状态，而且有些调用永远不会修改它。Orleans没有在每个方法之后使用复杂的系统来评估状态差异，而是要求grain开发人员添加必要的逻辑来确定是否需要保存状态。</p>
+<p>使用存储提供程序保存状态很容易通过调用<code>base.WriteStateAsync()</code>.</p>
+<p>因此，最终版本的<code>提升()</code>和<code>设置管理器()</code>方法如下：</p>
+<pre><code class="lang-csharp">public Task Promote(int newLevel)
+{
+    State.Level = newLevel;
+    return base.WriteStateAsync();
+}
+
+public Task SetManager(IManager manager)
+{
+    State.Manager = manager;
+    return base.WriteStateAsync();
+}
+</code></pre><p>在<code>经理</code>类，只有一个方法需要修改才能写出数据，<code>AddDirectReport()</code>. 应该是这样的：</p>
+<pre><code class="lang-csharp">public async Task AddDirectReport(IEmployee employee)
+{
+    if (State.Reports == null)
+    {
+        State.Reports = new List&lt;IEmployee&gt;();
+    }
+    State.Reports.Add(employee);
+    await employee.SetManager(this);
+    var data = new GreetingData { From = this.GetPrimaryKey(), Message = &quot;Welcome to my team!&quot; };
+    await employee.Greeting(data);
+    Console.WriteLine(&quot;{0} said: {1}&quot;,
+                        data.From.ToString(),
+                        data.Message);
+
+    await base.WriteStateAsync();
+}
+</code></pre><p>让我们试试这个！</p>
+<p>在中设置断点<code>员工。晋升()</code>.</p>
+<p>当我们第一次运行客户端代码并到达断点时，level字段应该是<code>0</code>以及newLevel参数<code>10</code>或<code>11</code>:</p>
+<p>![](../Images/Persistence 2.PNG)</p>
+<p>让应用程序完成(到达“点击回车…”提示符)并退出。再次运行它，并比较第二次查看状态时发生的情况：</p>
+<p>![](../Images/Persistence 3.PNG)</p>
+<h2 id="只是确保">只是确保。。。</h2>
+<p>值得检查一下Azure对数据的看法。使用存储资源管理器(如Azure存储资源管理器(ASE)或Visual Studio 2013中内置的服务器资源管理器)，打开存储帐户(或模拟器的开发人员存储)并找到“OrleansGrainState”表。它应该是这样的(你必须在ASE中点击&#39;Query&#39;：</p>
+<p>![](../Images/Persistence 4.PNG)</p>
+<p>如果一切正常，则纹理键应该出现在<code>分区键</code>列中，并且grains的限定类名应出现在<code>行键</code>列。</p>
+<h2 id="混合的东西">混合的东西</h2>
+<p>grains可能包含持久状态和瞬态状态的组合。任何瞬态都应该用grain类中的私有字段来表示。混合使用这两者的一个常见用途是，当持久化状态存在于内存中时，将它的某些计算版本缓存到私有字段中。例如，一堆元素可以外部表示为<code>列表&lt;T&gt;</code>，但在内部，作为<code>堆栈&lt;T&gt;</code>.</p>
+<p>如果我们<code>经理</code>同学们<code>_我</code>field只是一个缓存的值，一开始我们甚至不需要将其作为字段保存，它可以在任何需要它的时候创建，但是由于它将是一个常用的值，所以值得将它保存在一个临时字段中。</p>
+<h2 id="状态自动加载">状态自动加载</h2>
+<p>如果Grains类型具有状态，则在激活时该状态将从存储中加载，然后<code>非激活异步</code>调用，以便您可以确保在初始化Grains时加载了状态。这是Orleans唯一调用来的案子<code>读状态异步</code>自动地。如果你想写州或在其他地方读，你应该自己写。通常你不需要调用<code>读状态异步</code>你自己，除非你正在做一些关于处理损坏状态或其他事情的具体事情。</p>
+<h2 id="使用持久化处理故障">使用持久化处理故障</h2>
+<p>一般来说，读写Grains的状态是一个很好的机制来处理失败和服务于它的初衷。由于不同的原因，grain调用可能会在方法的中间失败，最终导致状态更改一半。在这种情况下，从存储器中读取可以将状态返回到上一个正确的状态。或者，进入这种状态后，grain可以通过调用DeactivateOnIdle()请求立即停用，这样它的下一个请求将触发grain的重新激活，这将重新读取持久状态并重建其在内存中的副本。停用是将grains重置为其最后已知良好状态的最干净的方法，但是如果要避免重新激活过程的成本，可以重置其状态并重新运行任何初始化逻辑(例如，通过调用<code>非激活异步</code>)而不是使Grains失活。</p>
+<h2 id="下一个">下一个</h2>
+<p>接下来，我们将了解如何从mvcweb应用程序调用grains。</p>
+<p><a href="../1.5/Tutorials/Failure-Handling.html">处理失败</a></p>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/sheng-jie/orleans/blob/docs/zh-cn/Tutorials/Declarative-Persistence.zh.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>
